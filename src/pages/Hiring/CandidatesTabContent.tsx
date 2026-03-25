@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Icon, Dropdown, StarRating } from '../../components';
+import { Icon, StarRating } from '../../components';
 import { candidates } from '../../data/candidates';
 
 export function CandidatesTabContent() {
@@ -99,14 +99,14 @@ export function CandidatesTabContent() {
           </div>
 
           {/* Filter Sections */}
-          {filterSections.map((section, index) => (
+          {filterSections.map((section) => (
             <div key={section.id} className="relative">
               <button
                 onClick={() => toggleFilter(section.id)}
                 className="w-full h-[46px] flex items-center gap-2 px-5 hover:bg-[var(--surface-neutral-xx-weak)] transition-colors"
               >
                 <Icon
-                  name="chevron-right"
+                  name={expandedFilters.has(section.id) ? 'chevron-down' : 'chevron-right'}
                   size={16}
                   className={
                     section.hasActive
@@ -170,7 +170,7 @@ export function CandidatesTabContent() {
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((candidate, index) => (
+                {candidates.map((candidate) => (
                   <tr
                     key={candidate.id}
                     className="border-t border-[var(--border-neutral-x-weak)] hover:bg-[var(--surface-neutral-xx-weak)] transition-colors"
