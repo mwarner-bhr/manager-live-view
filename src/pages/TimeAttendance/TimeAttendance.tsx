@@ -637,14 +637,24 @@ export function TimeAttendance() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showPotentialIssues, setShowPotentialIssues] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<StatusCard | null>(null);
+  const [issueCycleToken, setIssueCycleToken] = useState(0);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setShowPotentialIssues(true);
-    }, 7000);
+    }, 15000);
 
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [issueCycleToken]);
 
   const pulseSummary = useMemo(() => {
     const clockedInCount = cards.filter((card) => card.status === 'Clocked In' || card.status === 'Clocked In (late)' || card.status === 'On Break').length;
@@ -674,6 +684,20 @@ export function TimeAttendance() {
   ] as const;
 
   const scheduleRows = useMemo(() => cards.map((card, index) => buildScheduleRow(card, index)), []);
+  const liveTimeLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(currentTime),
+    [currentTime]
+  );
+
+  const handleResetPulse = () => {
+    setShowPotentialIssues(false);
+    setIssueCycleToken((value) => value + 1);
+  };
 
   return (
     <div className="flex min-h-full flex-col p-6">
@@ -717,7 +741,7 @@ export function TimeAttendance() {
 
         <div className="flex flex-1 flex-col bg-[var(--surface-neutral-xx-weak)] px-2 pb-4 pt-0">
           {activeTab === 'Live View' ? (
-            <div className="grid gap-4 lg:grid-cols-[344px_1fr]">
+            <div className="grid gap-4 lg:grid-cols-[420px_1fr]">
               <div className="space-y-4">
                 <section
                   className="rounded-[12px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4"
@@ -726,7 +750,13 @@ export function TimeAttendance() {
                   <div className="flex items-center gap-2">
                     <PulseIcon />
                     <span className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">Team Pulse</span>
-                    <span className="ml-auto text-[18px] leading-[26px] font-semibold text-[#FF2944]">Live: 9:12:34 AM</span>
+                    <button
+                      type="button"
+                      onClick={handleResetPulse}
+                      className="ml-auto cursor-pointer text-[18px] leading-[26px] font-semibold text-[#FF2944]"
+                    >
+                      Live: {liveTimeLabel}
+                    </button>
                   </div>
 
                   <div className="mt-[17px]">
