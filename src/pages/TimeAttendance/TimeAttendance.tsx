@@ -11,6 +11,8 @@ interface StatusCard {
   statusTone: 'green' | 'amber' | 'red' | 'gray' | 'blue';
   name: string;
   avatarSrc: string;
+  department?: string;
+  shiftLabel?: string;
   timeLabel?: string;
   project?: string;
   today?: string;
@@ -20,6 +22,8 @@ interface StatusCard {
   progressTone: 'green' | 'amber' | 'red';
   extraMetricLabel?: string;
   extraMetricValue?: string;
+  clockInMethod?: 'mobile' | 'web' | 'terminal';
+  clockInAddress?: string;
 }
 
 interface ScheduleSegment {
@@ -43,24 +47,36 @@ interface ScheduleRow {
 }
 
 const cards: StatusCard[] = [
-  { id: '1', status: 'Absent', statusTone: 'red', name: 'Jessica Martinez', avatarSrc: 'https://i.pravatar.cc/160?img=1', timeLabel: 'No clock-in recorded', project: 'Front Desk shift started at 9:00AM', weekly: '28h 40m', overtime: 'OT Status', progressPercent: 18, progressTone: 'green' },
-  { id: '2', status: 'Clocked In (late)', statusTone: 'amber', name: 'Michael Brown', avatarSrc: 'https://i.pravatar.cc/160?img=51', timeLabel: 'Clocked in 9:14AM', project: 'Warehouse Receiving » Morning Intake', today: '0h 48m', weekly: '31h 05m', overtime: 'OT Status', progressPercent: 46, progressTone: 'green' },
-  { id: '3', status: 'Clocked In (late)', statusTone: 'amber', name: 'Olivia Parker', avatarSrc: 'https://i.pravatar.cc/160?img=26', timeLabel: 'Clocked in 9:07AM', project: 'Support Queue » Benefits Escalations', today: '1h 12m', weekly: '34h 02m', overtime: 'OT Status', progressPercent: 41, progressTone: 'green' },
-  { id: '4', status: 'On Break', statusTone: 'blue', name: 'Frank Rodriguez', avatarSrc: 'https://i.pravatar.cc/160?img=13', timeLabel: 'Clocked in 8:02AM • Break started 10:18AM', project: 'Payroll Review » Biweekly Closeout', today: '2h 16m', weekly: '37h 31m', overtime: 'OT Status', progressPercent: 100, progressTone: 'red', extraMetricLabel: 'OT', extraMetricValue: '1h 44m' },
-  { id: '5', status: 'Clocked In', statusTone: 'green', name: 'Grace Anderson', avatarSrc: 'https://i.pravatar.cc/160?img=48', timeLabel: 'Clocked in 8:55AM', project: 'People Ops » New Hire Orientation', today: '1h 24m', weekly: '33h 13m', overtime: 'OT Status', progressPercent: 72, progressTone: 'amber' },
-  { id: '6', status: 'Clocked In', statusTone: 'green', name: 'Liam Foster', avatarSrc: 'https://i.pravatar.cc/160?img=17', timeLabel: 'Clocked in 8:43AM', project: 'Brand Studio » Campaign Reviews', today: '1h 39m', weekly: '35h 21m', overtime: 'OT Status', progressPercent: 69, progressTone: 'amber' },
-  { id: '7', status: 'Clocked In', statusTone: 'green', name: 'Noah Jackson', avatarSrc: 'https://i.pravatar.cc/160?img=52', timeLabel: 'Clocked in 8:58AM', project: 'Operations » Vendor Coordination', today: '1h 18m', weekly: '32h 47m', overtime: 'OT Status', progressPercent: 63, progressTone: 'amber' },
-  { id: '8', status: 'PTO', statusTone: 'gray', name: 'Emma Wilson', avatarSrc: 'https://i.pravatar.cc/160?img=44', timeLabel: 'Approved PTO for today', project: 'Out of office • Returns tomorrow', weekly: '24h 10m', overtime: 'OT Status', progressPercent: 24, progressTone: 'green' },
-  { id: '9', status: 'Off Today', statusTone: 'gray', name: 'Taylor Morgan', avatarSrc: 'https://i.pravatar.cc/160?img=20', timeLabel: 'Next shift starts tomorrow at 8:00AM', project: 'Scheduled day off', weekly: '36h 12m', overtime: 'OT Status', progressPercent: 70, progressTone: 'amber' },
-  { id: '10', status: 'Clocked In', statusTone: 'green', name: 'Sarah Chen', avatarSrc: 'https://i.pravatar.cc/160?img=5', timeLabel: 'Clocked in 8:31AM', project: 'Executive » Planning Review', today: '1h 51m', weekly: '38h 08m', overtime: 'OT Status', progressPercent: 82, progressTone: 'amber' },
-  { id: '11', status: 'Off Today', statusTone: 'gray', name: 'Ava Thompson', avatarSrc: 'https://i.pravatar.cc/160?img=32', timeLabel: 'Weekend schedule', project: 'No assigned shift today', weekly: '29h 55m', overtime: 'OT Status', progressPercent: 15, progressTone: 'green' },
-  { id: '12', status: 'Clocked In', statusTone: 'green', name: 'Daniel Kim', avatarSrc: 'https://i.pravatar.cc/160?img=12', timeLabel: 'Clocked in 8:48AM', project: 'IT Help Desk » Device Setup', today: '1h 29m', weekly: '34h 44m', overtime: 'OT Status', progressPercent: 58, progressTone: 'amber' },
+  { id: '1', status: 'Absent', statusTone: 'red', name: 'Jessica Martinez', avatarSrc: 'https://i.pravatar.cc/160?img=1', department: 'Operations', shiftLabel: 'Front Desk • 9:00AM-5:00PM', timeLabel: 'No clock-in recorded', project: 'Front Desk shift started at 9:00AM', weekly: '28h 40m', overtime: 'OT Status', progressPercent: 18, progressTone: 'green' },
+  { id: '2', status: 'Clocked In (late)', statusTone: 'amber', name: 'Michael Brown', avatarSrc: 'https://i.pravatar.cc/160?img=51', department: 'Warehouse', shiftLabel: 'Receiving • 8:30AM-5:00PM', timeLabel: 'Clocked in 9:14AM', project: 'Warehouse Receiving » Morning Intake', today: '0h 48m', weekly: '31h 05m', overtime: 'OT Status', progressPercent: 46, progressTone: 'green', clockInMethod: 'terminal' },
+  { id: '3', status: 'Clocked In (late)', statusTone: 'amber', name: 'Olivia Parker', avatarSrc: 'https://i.pravatar.cc/160?img=26', department: 'Support', shiftLabel: 'Benefits Queue • 8:45AM-5:15PM', timeLabel: 'Clocked in 9:07AM', project: 'Support Queue » Benefits Escalations', today: '1h 12m', weekly: '34h 02m', overtime: 'OT Status', progressPercent: 41, progressTone: 'green', clockInMethod: 'mobile', clockInAddress: '525 W Ashton Blvd, Lehi, UT 84043' },
+  { id: '4', status: 'On Break', statusTone: 'blue', name: 'Frank Rodriguez', avatarSrc: 'https://i.pravatar.cc/160?img=13', department: 'Finance', shiftLabel: 'Payroll • 8:00AM-5:00PM', timeLabel: 'Clocked in 8:02AM • Break started 10:18AM', project: 'Payroll Review » Biweekly Closeout', today: '2h 16m', weekly: '37h 31m', overtime: 'OT Status', progressPercent: 100, progressTone: 'red', extraMetricLabel: 'OT', extraMetricValue: '1h 44m', clockInMethod: 'web' },
+  { id: '5', status: 'Clocked In', statusTone: 'green', name: 'Grace Anderson', avatarSrc: 'https://i.pravatar.cc/160?img=48', department: 'People Ops', shiftLabel: 'Onboarding • 9:00AM-5:30PM', timeLabel: 'Clocked in 8:55AM', project: 'People Ops » New Hire Orientation', today: '1h 24m', weekly: '33h 13m', overtime: 'OT Status', progressPercent: 72, progressTone: 'amber', clockInMethod: 'mobile', clockInAddress: '42 N Center St, American Fork, UT 84003' },
+  { id: '6', status: 'Clocked In', statusTone: 'green', name: 'Liam Foster', avatarSrc: 'https://i.pravatar.cc/160?img=17', department: 'Marketing', shiftLabel: 'Creative • 8:30AM-5:00PM', timeLabel: 'Clocked in 8:43AM', project: 'Brand Studio » Campaign Reviews', today: '1h 39m', weekly: '35h 21m', overtime: 'OT Status', progressPercent: 69, progressTone: 'amber', clockInMethod: 'terminal' },
+  { id: '7', status: 'Clocked In', statusTone: 'green', name: 'Noah Jackson', avatarSrc: 'https://i.pravatar.cc/160?img=52', department: 'Operations', shiftLabel: 'Vendor Ops • 9:00AM-5:00PM', timeLabel: 'Clocked in 8:58AM', project: 'Operations » Vendor Coordination', today: '1h 18m', weekly: '32h 47m', overtime: 'OT Status', progressPercent: 63, progressTone: 'amber', clockInMethod: 'web' },
+  { id: '8', status: 'PTO', statusTone: 'gray', name: 'Emma Wilson', avatarSrc: 'https://i.pravatar.cc/160?img=44', department: 'Finance', shiftLabel: 'Approved PTO', timeLabel: 'Approved PTO for today', project: 'Out of office • Returns tomorrow', weekly: '24h 10m', overtime: 'OT Status', progressPercent: 24, progressTone: 'green' },
+  { id: '9', status: 'Off Today', statusTone: 'gray', name: 'Taylor Morgan', avatarSrc: 'https://i.pravatar.cc/160?img=20', department: 'Technology', shiftLabel: 'Scheduled off', timeLabel: 'Next shift starts tomorrow at 8:00AM', project: 'Scheduled day off', weekly: '36h 12m', overtime: 'OT Status', progressPercent: 70, progressTone: 'amber' },
+  { id: '10', status: 'Clocked In', statusTone: 'green', name: 'Sarah Chen', avatarSrc: 'https://i.pravatar.cc/160?img=5', department: 'Executive', shiftLabel: 'Leadership • 8:30AM-5:30PM', timeLabel: 'Clocked in 8:31AM', project: 'Executive » Planning Review', today: '1h 51m', weekly: '38h 08m', overtime: 'OT Status', progressPercent: 82, progressTone: 'amber', clockInMethod: 'mobile', clockInAddress: '500 Terry A Francois Blvd, San Francisco, CA 94158' },
+  { id: '11', status: 'Off Today', statusTone: 'gray', name: 'Ava Thompson', avatarSrc: 'https://i.pravatar.cc/160?img=32', department: 'Retail', shiftLabel: 'Scheduled off', timeLabel: 'Weekend schedule', project: 'No assigned shift today', weekly: '29h 55m', overtime: 'OT Status', progressPercent: 15, progressTone: 'green' },
+  { id: '12', status: 'Clocked In', statusTone: 'green', name: 'Daniel Kim', avatarSrc: 'https://i.pravatar.cc/160?img=12', department: 'IT', shiftLabel: 'Help Desk • 8:30AM-5:00PM', timeLabel: 'Clocked in 8:48AM', project: 'IT Help Desk » Device Setup', today: '1h 29m', weekly: '34h 44m', overtime: 'OT Status', progressPercent: 58, progressTone: 'amber', clockInMethod: 'terminal' },
 ];
 
 const insights = [
-  { id: '1', title: 'Title', description: 'Description' },
-  { id: '2', title: 'Title', description: 'Description' },
-  { id: '3', title: 'Title', description: 'Description' },
+  {
+    id: '1',
+    title: 'Michael Brown has a late pattern',
+    description: 'Michael has clocked in late 3 times in the last 2 weeks, most often on opening shifts.',
+  },
+  {
+    id: '2',
+    title: 'Grace Anderson is trending consistent',
+    description: 'Grace has started on time for 10 straight scheduled shifts over the last 2 weeks.',
+  },
+  {
+    id: '3',
+    title: 'Front desk coverage has been tight',
+    description: 'The opening front desk shift has had a late or missed clock-in 4 times in the last 14 days.',
+  },
 ] as const;
 
 const ganttHours = ['6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM'] as const;
@@ -123,9 +139,6 @@ function InsightTile({ title, description }: { title: string; description: strin
       }}
     >
       <span className="flex items-center gap-4 rounded-[15px] bg-[var(--surface-neutral-white)] px-4 py-[14px]">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[var(--surface-neutral-xx-weak)]">
-          <Icon name="face-smile" size={22} className="text-[#006FA6]" />
-        </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[15px] leading-[22px] font-medium text-[#006FA6]">{title}</span>
           <span className="block text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{description}</span>
@@ -305,6 +318,143 @@ function EmployeeStatusRow({ card }: { card: StatusCard }) {
   );
 }
 
+function EmployeeDetailModal({
+  employee,
+  onClose,
+}: {
+  employee: StatusCard;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#676260]/95 p-6">
+      <div
+        className="flex max-h-[calc(100vh-48px)] w-full max-w-[860px] flex-col overflow-hidden rounded-[16px] bg-[var(--surface-neutral-white)]"
+        style={{ boxShadow: '2px 2px 0px 2px rgba(56,49,47,0.13)' }}
+      >
+        <div className="flex items-center border-b border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] px-4 py-3">
+          <h3 className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">{employee.name}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] text-[var(--text-neutral-medium)]"
+          >
+            <Icon name="xmark" size={12} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-6 py-5">
+          <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+            <div className="space-y-4">
+              <div className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] p-4 text-center">
+                <Avatar src={employee.avatarSrc} alt={employee.name} size="large" className="mx-auto shadow-none" />
+                <p className="mt-4 text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">{employee.name}</p>
+                <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{employee.department ?? 'Team Member'}</p>
+                <span className={`mt-4 inline-flex rounded-[6px] px-[10px] py-[5px] text-[13px] font-medium leading-[19px] ${statusBadgeClass(employee.statusTone)}`}>
+                  {employee.status}
+                </span>
+              </div>
+
+              <div className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4">
+                <p className="text-[13px] leading-[19px] font-semibold text-[var(--text-neutral-x-strong)]">Shift</p>
+                <p className="mt-1 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{employee.shiftLabel ?? 'No scheduled shift'}</p>
+                <p className="mt-3 text-[13px] leading-[19px] font-semibold text-[var(--text-neutral-x-strong)]">Clock-in Method</p>
+                <p className="mt-1 text-[15px] leading-[22px] capitalize text-[var(--text-neutral-strong)]">{employee.clockInMethod ?? 'Not available'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-3">
+                {[
+                  ['Today', employee.today ?? '--'],
+                  ['Weekly', employee.weekly],
+                  [employee.extraMetricLabel ?? 'OT', employee.extraMetricValue ?? '--'],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4">
+                    <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{label}</p>
+                    <p className="mt-1 text-[22px] leading-[28px] font-semibold text-[var(--text-neutral-x-strong)]">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-5">
+                <p className="text-[15px] leading-[22px] font-semibold text-[var(--text-neutral-x-strong)]">Attendance Details</p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">Latest activity</p>
+                    <p className="mt-1 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{employee.timeLabel ?? 'No activity recorded'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">Assignment</p>
+                    <p className="mt-1 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{employee.project ?? 'No active assignment'}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-center gap-3">
+                  <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{employee.overtime}</p>
+                  <div className="h-3 flex-1 rounded-full bg-[var(--surface-neutral-x-weak)]">
+                    <div
+                      className={`h-3 rounded-full ${progressBarClass(employee.progressTone)}`}
+                      style={{ width: `${employee.progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {employee.clockInMethod === 'mobile' && employee.clockInAddress ? (
+                <div className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-5">
+                  <p className="text-[15px] leading-[22px] font-semibold text-[var(--text-neutral-x-strong)]">Mobile Clock-In Location</p>
+                  <div className="mt-4 overflow-hidden rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[linear-gradient(180deg,#E7F4EB_0%,#EAF4F8_52%,#F6F3E9_100%)]">
+                    <div className="relative h-[240px]">
+                      <div
+                        className="absolute inset-0 opacity-60"
+                        style={{
+                          backgroundImage:
+                            'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.65) 0, rgba(255,255,255,0) 24%), linear-gradient(90deg, rgba(255,255,255,0.55) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.55) 1px, transparent 1px)',
+                          backgroundSize: 'auto, 56px 56px, 56px 56px',
+                        }}
+                      />
+                      <div className="absolute left-[18%] top-[22%] h-14 w-24 rounded-full bg-[#CFE8D6]/70 blur-[2px]" />
+                      <div className="absolute right-[16%] top-[18%] h-16 w-28 rounded-full bg-[#CDE3F2]/75 blur-[2px]" />
+                      <div className="absolute bottom-[20%] left-[24%] h-16 w-32 rounded-full bg-[#E8DFC7]/65 blur-[2px]" />
+                      <div className="absolute left-[48%] top-[46%] -translate-x-1/2 -translate-y-full">
+                        <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#FF295F] text-white shadow-[0_8px_18px_rgba(255,41,95,0.28)]">
+                          <Icon name="location-dot" size={18} className="translate-y-[-1px]" />
+                        </div>
+                        <div className="mx-auto h-4 w-[2px] bg-[#FF295F]" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-start gap-3 rounded-[12px] bg-[var(--surface-neutral-xx-weak)] p-4">
+                    <Icon name="location-dot" size={16} className="mt-0.5 text-[var(--color-primary-strong)]" />
+                    <div>
+                      <p className="text-[13px] leading-[19px] font-semibold text-[var(--text-neutral-x-strong)]">Clock-in address</p>
+                      <p className="text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{employee.clockInAddress}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 px-6 pb-4 pt-2">
+          <button type="button" onClick={onClose} className="text-[15px] leading-[22px] font-medium text-[#0047FF]">
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full bg-[var(--color-primary-strong)] px-5 py-2 text-[15px] leading-[22px] font-semibold text-white"
+            style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.08)' }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GanttScheduleView() {
   return (
     <div className="mt-4 overflow-x-auto">
@@ -396,6 +546,7 @@ export function TimeAttendance() {
   const [activeTab, setActiveTab] = useState<TabKey>('Live View');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showPotentialIssues, setShowPotentialIssues] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<StatusCard | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -474,7 +625,7 @@ export function TimeAttendance() {
 
         <div className="flex flex-1 flex-col bg-[var(--surface-neutral-xx-weak)] px-2 pb-4 pt-0">
           {activeTab === 'Live View' ? (
-            <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+            <div className="grid gap-4 lg:grid-cols-[344px_1fr]">
               <div className="space-y-4">
                 <section
                   className="rounded-[12px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4"
@@ -605,7 +756,14 @@ export function TimeAttendance() {
                 {viewMode === 'grid' ? (
                   <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                     {cards.map((card) => (
-                      <EmployeeStatusCard key={card.id} card={card} />
+                      <button
+                        key={card.id}
+                        type="button"
+                        onClick={() => setSelectedEmployee(card)}
+                        className="text-left"
+                      >
+                        <EmployeeStatusCard card={card} />
+                      </button>
                     ))}
                   </div>
                 ) : viewMode === 'list' ? (
@@ -658,6 +816,9 @@ export function TimeAttendance() {
           )}
         </div>
       </div>
+      {selectedEmployee ? (
+        <EmployeeDetailModal employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} />
+      ) : null}
     </div>
   );
 }
