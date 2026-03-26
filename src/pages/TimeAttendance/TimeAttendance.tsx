@@ -94,6 +94,24 @@ const insights = [
   },
 ] as const;
 
+const overtimeInsights = [
+  {
+    id: '1',
+    title: 'Frank Rodriguez is already in daily OT',
+    description: 'Frank is on track to finish today with more than 2 hours of overtime if his shift stays unchanged.',
+  },
+  {
+    id: '2',
+    title: 'Sarah Chen may cross weekly overtime tomorrow',
+    description: 'Based on her current schedule, Sarah is projected to pass 40 hours by late tomorrow afternoon.',
+  },
+  {
+    id: '3',
+    title: 'Grace and Daniel are approaching OT',
+    description: 'If both work their full scheduled shifts for the rest of the week, each is within a few hours of overtime.',
+  },
+] as const;
+
 const ganttHours = ['6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM'] as const;
 const ganttStartHour = 6;
 const ganttEndHour = 22;
@@ -136,6 +154,68 @@ function InsightTile({ title, description }: { title: string; description: strin
       </span>
     </button>
   );
+}
+
+function OvertimeInsightTile({ title, description }: { title: string; description: string }) {
+  return (
+    <div
+      className="rounded-[14px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] px-4 py-3"
+      style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.03)' }}
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF2E7] text-[#CC5C00]">
+          <Icon name="clock" size={14} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] leading-[22px] font-medium text-[var(--color-primary-strong)]">{title}</span>
+          <span className="mt-1 block text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{description}</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function getOvertimeSummary(employee: StatusCard) {
+  const weeklyMinutes = parseDurationMinutes(employee.weekly) ?? 0;
+  const todayMinutes = employee.today ? parseDurationMinutes(employee.today) ?? 0 : 0;
+
+  if (employee.status === 'PTO' || employee.status === 'Off Today') {
+    return {
+      label: 'Not at risk',
+      toneClass: 'bg-[#E7F5EA] text-[#2A7B3F]',
+      description: 'No overtime risk today. Their current schedule does not put them on track to cross overtime thresholds.',
+    };
+  }
+
+  if (employee.status === 'Absent') {
+    return {
+      label: 'Needs review',
+      toneClass: 'bg-[#FDE4E1] text-[#B34B3D]',
+      description: 'No overtime risk right now, but the missed clock-in could affect coverage and force extra hours elsewhere.',
+    };
+  }
+
+  if (employee.extraMetricLabel === 'OT' && employee.extraMetricValue) {
+    return {
+      label: 'High risk',
+      toneClass: 'bg-[#FDE4E1] text-[#B34B3D]',
+      description: `Already showing overtime today (${employee.extraMetricValue}). Review the rest of this shift before more overtime accrues.`,
+    };
+  }
+
+  if (weeklyMinutes >= 38 * 60 || todayMinutes >= 8 * 60) {
+    return {
+      label: 'Watch closely',
+      toneClass: 'bg-[#FDEFD9] text-[#A56417]',
+      description: 'Trending toward overtime based on recent hours and the remainder of the scheduled shift.',
+    };
+  }
+
+  return {
+    label: 'Not at risk',
+    toneClass: 'bg-[#E7F5EA] text-[#2A7B3F]',
+    description: 'Current hours and schedule look healthy. No overtime issue is projected right now.',
+  };
 }
 
 function GridViewIcon() {
@@ -340,12 +420,6 @@ function statusBadgeClass(tone: StatusCard['statusTone']) {
   return 'bg-[var(--surface-neutral-xx-weak)] text-[var(--text-neutral-medium)]';
 }
 
-function progressBarClass(tone: StatusCard['progressTone']) {
-  if (tone === 'green') return 'bg-[#3E8F45]';
-  if (tone === 'amber') return 'bg-[#CC5C00]';
-  return 'bg-[#D7263D]';
-}
-
 function isWorkingStatus(status: StatusCard['status']) {
   return status === 'Clocked In' || status === 'Clocked In (late)' || status === 'On Break';
 }
@@ -411,12 +485,6 @@ function EmployeeStatusCard({
         </div>
       </div>
 
-      <div className="mt-auto flex items-center gap-3 pt-3">
-        <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{card.overtime}</p>
-        <div className="h-3 flex-1 rounded-full bg-[var(--surface-neutral-x-weak)]">
-          <div className={`h-3 rounded-full ${progressBarClass(card.progressTone)}`} style={{ width: `${card.progressPercent}%` }} />
-        </div>
-      </div>
     </div>
   );
 }
@@ -477,6 +545,7 @@ function EmployeeDetailModal({
     ? formatDuration((parseDurationMinutes(employee.today) ?? 0) + (isWorkingStatus(employee.status) ? elapsedWorkingMinutes : 0))
     : '--';
   const weeklyDisplay = formatDuration((parseDurationMinutes(employee.weekly) ?? 0) + (isWorkingStatus(employee.status) ? elapsedWorkingMinutes : 0));
+  const overtimeSummary = getOvertimeSummary(employee);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#676260]/95 p-6">
@@ -541,16 +610,16 @@ function EmployeeDetailModal({
                     <p className="mt-1 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{employee.project ?? 'No active assignment'}</p>
                   </div>
                 </div>
+              </div>
 
-                <div className="mt-5 flex items-center gap-3">
-                  <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{employee.overtime}</p>
-                  <div className="h-3 flex-1 rounded-full bg-[var(--surface-neutral-x-weak)]">
-                    <div
-                      className={`h-3 rounded-full ${progressBarClass(employee.progressTone)}`}
-                      style={{ width: `${employee.progressPercent}%` }}
-                    />
-                  </div>
+              <div className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[15px] leading-[22px] font-semibold text-[var(--text-neutral-x-strong)]">Overtime</p>
+                  <span className={`inline-flex rounded-[999px] px-3 py-1 text-[12px] leading-[18px] font-semibold ${overtimeSummary.toneClass}`}>
+                    {overtimeSummary.label}
+                  </span>
                 </div>
+                <p className="mt-3 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{overtimeSummary.description}</p>
               </div>
 
               {employee.clockInMethod === 'mobile' && employee.clockInAddress ? (
@@ -880,6 +949,26 @@ export function TimeAttendance() {
                   <button className="mt-3 text-[15px] leading-[22px] font-medium text-[#0047FF] hover:underline">
                     See All Insights
                   </button>
+                </section>
+
+                <section
+                  className="rounded-[12px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4"
+                  style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.03)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon name="clock" size={18} className="text-[var(--color-primary-strong)]" />
+                    <h3 className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">Overtime</h3>
+                  </div>
+
+                  <p className="mt-2 text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">
+                    AI watchouts based on recent hours, current schedules, and who is trending toward daily or weekly overtime.
+                  </p>
+
+                  <div className="mt-3 space-y-3">
+                    {overtimeInsights.map((item) => (
+                      <OvertimeInsightTile key={item.id} title={item.title} description={item.description} />
+                    ))}
+                  </div>
                 </section>
               </div>
 
