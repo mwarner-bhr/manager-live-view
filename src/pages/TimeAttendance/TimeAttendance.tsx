@@ -36,7 +36,7 @@ interface ScheduleRow {
   id: string;
   name: string;
   avatarSrc: string;
-  status: 'active' | 'late' | 'absent' | 'pto';
+  status: 'active' | 'late' | 'absent' | 'pto' | 'off';
   scheduleText?: string;
   statusLabel?: string;
   trackStart: number;
@@ -83,32 +83,6 @@ const ganttHours = ['6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '
 const ganttStartHour = 6;
 const ganttEndHour = 22;
 const currentHour = 13;
-
-const ganttRows: ScheduleRow[] = [
-  { id: 'g1', name: 'Charlotte Hernandez', avatarSrc: 'https://i.pravatar.cc/160?img=33', status: 'absent', statusLabel: 'ABSENT', trackStart: 10.2, trackEnd: 17.0 },
-  { id: 'g2', name: 'Mason Lee', avatarSrc: 'https://i.pravatar.cc/160?img=54', status: 'absent', statusLabel: 'ABSENT', trackStart: 8.6, trackEnd: 15.8 },
-  { id: 'g3', name: 'Priya Gomez', avatarSrc: 'https://i.pravatar.cc/160?img=47', status: 'absent', statusLabel: 'ABSENT', trackStart: 8.6, trackEnd: 14.2 },
-  { id: 'g4', name: 'Alexander Thomas', avatarSrc: 'https://i.pravatar.cc/160?img=60', status: 'late', lateAt: 8.1, trackStart: 9.1, trackEnd: 14.7, durationLabel: '5h 12m', segments: [{ start: 9.1, end: 14.2, tone: 'green' }] },
-  { id: 'g5', name: 'Noah Davis', avatarSrc: 'https://i.pravatar.cc/160?img=68', status: 'active', trackStart: 9.1, trackEnd: 16.3, durationLabel: '5h 12m', segments: [{ start: 9.1, end: 14.2, tone: 'green' }] },
-  { id: 'g6', name: 'William Jones', avatarSrc: 'https://i.pravatar.cc/160?img=12', status: 'late', lateAt: 9.0, trackStart: 9.9, trackEnd: 16.0, durationLabel: '4h 27m', segments: [{ start: 9.9, end: 14.35, tone: 'green' }] },
-  { id: 'g7', name: 'Sophia Miller', avatarSrc: 'https://i.pravatar.cc/160?img=49', status: 'late', lateAt: 11.0, trackStart: 11.1, trackEnd: 17.1, durationLabel: '3h 7m', segments: [{ start: 11.1, end: 14.2, tone: 'green' }] },
-  { id: 'g8', name: 'Henry Wilson', avatarSrc: 'https://i.pravatar.cc/160?img=65', status: 'active', trackStart: 9.1, trackEnd: 14.25, durationLabel: '4h 15m', segments: [{ start: 9.1, end: 13.0, tone: 'green' }, { start: 13.0, end: 14.0, tone: 'amber' }] },
-  { id: 'g9', name: 'Oliver Brown', avatarSrc: 'https://i.pravatar.cc/160?img=14', status: 'active', trackStart: 10.4, trackEnd: 14.1, durationLabel: '3h 15m', segments: [{ start: 10.4, end: 13.3, tone: 'green' }, { start: 13.3, end: 14.0, tone: 'amber' }] },
-  { id: 'g10', name: 'James Davis', avatarSrc: 'https://i.pravatar.cc/160?img=11', status: 'active', trackStart: 8.0, trackEnd: 14.2, durationLabel: '6h 12m', segments: [{ start: 8.0, end: 14.2, tone: 'green' }] },
-  { id: 'g11', name: 'Lucas Lopez', avatarSrc: 'https://i.pravatar.cc/160?img=15', status: 'active', trackStart: 8.6, trackEnd: 14.3, durationLabel: '5h 42m', segments: [{ start: 8.6, end: 14.3, tone: 'green' }] },
-  { id: 'g12', name: 'Mia Rodriguez', avatarSrc: 'https://i.pravatar.cc/160?img=32', status: 'active', trackStart: 9.6, trackEnd: 14.32, durationLabel: '4h 43m', segments: [{ start: 9.6, end: 14.32, tone: 'green' }] },
-  { id: 'g13', name: 'Ava Garcia', avatarSrc: 'https://i.pravatar.cc/160?img=36', status: 'active', trackStart: 9.1, trackEnd: 14.38, durationLabel: '5h 13m', segments: [{ start: 9.1, end: 14.38, tone: 'green' }] },
-  { id: 'g14', name: 'Amelia Gonzalez', avatarSrc: 'https://i.pravatar.cc/160?img=24', status: 'active', trackStart: 9.6, trackEnd: 14.32, durationLabel: '4h 43m', segments: [{ start: 9.6, end: 14.32, tone: 'green' }] },
-  { id: 'g15', name: 'Isabella Miller', avatarSrc: 'https://i.pravatar.cc/160?img=25', status: 'active', trackStart: 11.0, trackEnd: 14.22, durationLabel: '3h 13m', segments: [{ start: 11.0, end: 14.22, tone: 'green' }] },
-  { id: 'g16', name: 'Liam Wilson', avatarSrc: 'https://i.pravatar.cc/160?img=23', status: 'active', trackStart: 10.1, trackEnd: 14.22, durationLabel: '4h 13m', segments: [{ start: 10.1, end: 14.22, tone: 'green' }] },
-  { id: 'g17', name: 'Benjamin Martin', avatarSrc: 'https://i.pravatar.cc/160?img=22', status: 'active', trackStart: 10.6, trackEnd: 14.32, durationLabel: '3h 43m', segments: [{ start: 10.6, end: 14.32, tone: 'green' }] },
-  { id: 'g18', name: 'Evelyn Anderson', avatarSrc: 'https://i.pravatar.cc/160?img=19', status: 'active', trackStart: 9.35, trackEnd: 14.33, durationLabel: '4h 58m', segments: [{ start: 9.35, end: 14.33, tone: 'green' }] },
-  { id: 'g19', name: 'Maria Chen', avatarSrc: 'https://i.pravatar.cc/160?img=18', status: 'active', trackStart: 10.1, trackEnd: 14.23, durationLabel: '4h 13m', segments: [{ start: 10.1, end: 14.23, tone: 'green' }] },
-  { id: 'g20', name: 'Emma Taylor', avatarSrc: 'https://i.pravatar.cc/160?img=17', status: 'active', trackStart: 9.6, trackEnd: 14.32, durationLabel: '4h 43m', segments: [{ start: 9.6, end: 14.32, tone: 'green' }] },
-  { id: 'g21', name: 'Jake Patel', avatarSrc: 'https://i.pravatar.cc/160?img=16', status: 'late', lateAt: 8.0, trackStart: 8.2, trackEnd: 15.0, durationLabel: '4h 50m', segments: [{ start: 8.2, end: 13.0, tone: 'green' }, { start: 13.0, end: 14.0, tone: 'amber' }] },
-  { id: 'g22', name: 'Elena Rodriguez', avatarSrc: 'https://i.pravatar.cc/160?img=41', status: 'pto', statusLabel: 'PTO', trackStart: 10.6, trackEnd: 17.0 },
-  { id: 'g23', name: 'David Chen', avatarSrc: 'https://i.pravatar.cc/160?img=40', status: 'pto', statusLabel: 'PTO', trackStart: 10.0, trackEnd: 17.5 },
-] as const;
 
 function PulseIcon() {
   return (
@@ -205,11 +179,127 @@ function timelinePercent(hour: number) {
 function scheduleLabelClass(status: ScheduleRow['status']) {
   if (status === 'absent') return 'text-[#FF295F]';
   if (status === 'pto') return 'text-[#5C6CFF]';
+  if (status === 'off') return 'text-[var(--text-neutral-medium)]';
   return 'text-transparent';
 }
 
 function scheduleSegmentClass(tone: ScheduleSegment['tone']) {
   return tone === 'amber' ? 'bg-[#FFB400]' : 'bg-[#10C47A]';
+}
+
+function parseDurationHours(duration?: string) {
+  if (!duration) return 0;
+  const match = duration.match(/(\d+)h\s*(\d+)m/i);
+  if (!match) return 0;
+  return Number(match[1]) + Number(match[2]) / 60;
+}
+
+function parseClockInHour(label?: string) {
+  if (!label) return null;
+  const match = label.match(/(\d{1,2}):(\d{2})(AM|PM)/i);
+  if (!match) return null;
+  let hour = Number(match[1]) % 12;
+  const minute = Number(match[2]);
+  const meridiem = match[3].toUpperCase();
+  if (meridiem === 'PM') hour += 12;
+  return hour + minute / 60;
+}
+
+function parseShiftRange(shiftLabel?: string) {
+  if (!shiftLabel) return null;
+  const match = shiftLabel.match(/(\d{1,2}:\d{2}[AP]M)-(\d{1,2}:\d{2}[AP]M)/i);
+  if (!match) return null;
+  return {
+    start: parseClockInHour(match[1]),
+    end: parseClockInHour(match[2]),
+  };
+}
+
+function buildScheduleRow(card: StatusCard, index: number): ScheduleRow {
+  const shiftRange = parseShiftRange(card.shiftLabel);
+  const shiftStart = shiftRange?.start ?? 8.5 + (index % 3) * 0.25;
+  const shiftEnd = shiftRange?.end ?? 17 + (index % 2) * 0.5;
+  const workedHours = Math.max(parseDurationHours(card.today), 0.75);
+  const clockInHour = parseClockInHour(card.timeLabel) ?? shiftStart;
+  const workedEnd = Math.min(clockInHour + workedHours, ganttEndHour - 0.25);
+
+  if (card.status === 'Absent') {
+    return {
+      id: card.id,
+      name: card.name,
+      avatarSrc: card.avatarSrc,
+      status: 'absent',
+      statusLabel: 'ABSENT',
+      trackStart: shiftStart,
+      trackEnd: shiftEnd,
+    };
+  }
+
+  if (card.status === 'PTO') {
+    return {
+      id: card.id,
+      name: card.name,
+      avatarSrc: card.avatarSrc,
+      status: 'pto',
+      statusLabel: 'PTO',
+      trackStart: shiftStart,
+      trackEnd: shiftEnd,
+    };
+  }
+
+  if (card.status === 'Off Today') {
+    return {
+      id: card.id,
+      name: card.name,
+      avatarSrc: card.avatarSrc,
+      status: 'off',
+      statusLabel: 'OFF',
+      trackStart: shiftStart,
+      trackEnd: shiftEnd,
+    };
+  }
+
+  if (card.status === 'Clocked In (late)') {
+    return {
+      id: card.id,
+      name: card.name,
+      avatarSrc: card.avatarSrc,
+      status: 'late',
+      lateAt: Math.max(shiftStart, clockInHour - 0.35),
+      trackStart: shiftStart,
+      trackEnd: Math.max(shiftEnd - 0.5, workedEnd + 1.5),
+      durationLabel: card.today,
+      segments: [{ start: clockInHour, end: workedEnd, tone: 'green' }],
+    };
+  }
+
+  if (card.status === 'On Break') {
+    const amberStart = Math.max(clockInHour + 1.4, workedEnd - 0.6);
+    return {
+      id: card.id,
+      name: card.name,
+      avatarSrc: card.avatarSrc,
+      status: 'active',
+      trackStart: shiftStart,
+      trackEnd: Math.max(shiftEnd - 0.75, workedEnd + 1),
+      durationLabel: card.today,
+      segments: [
+        { start: clockInHour, end: amberStart, tone: 'green' },
+        { start: amberStart, end: workedEnd, tone: 'amber' },
+      ],
+    };
+  }
+
+  return {
+    id: card.id,
+    name: card.name,
+    avatarSrc: card.avatarSrc,
+    status: 'active',
+    trackStart: shiftStart,
+    trackEnd: Math.max(shiftEnd - 0.5, workedEnd + 1.25),
+    durationLabel: card.today,
+    segments: [{ start: clockInHour, end: workedEnd, tone: 'green' }],
+  };
 }
 
 function statusBadgeClass(tone: StatusCard['statusTone']) {
@@ -455,7 +545,7 @@ function EmployeeDetailModal({
   );
 }
 
-function GanttScheduleView() {
+function GanttScheduleView({ rows }: { rows: ScheduleRow[] }) {
   return (
     <div className="mt-4 overflow-x-auto">
       <div className="min-w-[980px]">
@@ -478,7 +568,7 @@ function GanttScheduleView() {
         </div>
 
         <div className="space-y-3">
-          {ganttRows.map((row) => (
+          {rows.map((row) => (
             <div key={row.id} className="grid grid-cols-[176px_68px_1fr] items-center gap-4 px-2">
               <div className="flex items-center gap-3">
                 <Avatar src={row.avatarSrc} alt={row.name} size={40} className="shadow-none" />
@@ -582,6 +672,8 @@ export function TimeAttendance() {
     { label: 'Absent', value: `${pulseSummary.absentCount}`, icon: 'ban' as const },
     { label: 'Off Today', value: `${pulseSummary.offTodayCount}`, icon: 'calendar' as const },
   ] as const;
+
+  const scheduleRows = useMemo(() => cards.map((card, index) => buildScheduleRow(card, index)), []);
 
   return (
     <div className="flex min-h-full flex-col p-6">
@@ -760,7 +852,7 @@ export function TimeAttendance() {
                         key={card.id}
                         type="button"
                         onClick={() => setSelectedEmployee(card)}
-                        className="text-left"
+                        className="cursor-pointer text-left"
                       >
                         <EmployeeStatusCard card={card} />
                       </button>
@@ -795,7 +887,7 @@ export function TimeAttendance() {
                     </table>
                   </div>
                 ) : (
-                  <GanttScheduleView />
+                  <GanttScheduleView rows={scheduleRows} />
                 )}
               </section>
             </div>
