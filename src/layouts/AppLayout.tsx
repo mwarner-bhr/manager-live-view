@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { GlobalNav } from '../components/GlobalNav';
 import { GlobalHeader } from '../components/GlobalHeader';
 import { AIChatPanel } from '../components/AIChatPanel';
@@ -13,6 +14,10 @@ interface AppLayoutProps {
 }
 
 function AppLayout({ children }: AppLayoutProps) {
+  const { pathname } = useLocation();
+  /** Skip the gray rounded “capsule” so the page controls its own surfaces (e.g. Time & Attendance). */
+  const skipContentCapsule = pathname === '/time-attendance' || pathname.startsWith('/time-attendance/');
+
   const [isNavExpanded, setIsNavExpanded] = useState(() => {
     const stored = localStorage.getItem(NAV_STORAGE_KEY);
     return stored ? JSON.parse(stored) : false;
@@ -120,20 +125,26 @@ function AppLayout({ children }: AppLayoutProps) {
           marginRight: chatPanelWidth,
         }}
       >
-        <main className="flex-1 flex flex-col min-h-0 pr-10 pb-10">
-          <div
-            className="
-              flex-1
-              flex
-              flex-col
-              min-h-0
-              bg-[var(--surface-neutral-xx-weak)]
-              rounded-[var(--radius-large)]
-              overflow-y-auto
-            "
-          >
-            {children}
-          </div>
+        <main className="flex-1 flex flex-col min-h-0 bg-[var(--surface-neutral-xx-weak)] pr-10 pb-10">
+          {skipContentCapsule ? (
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-[var(--surface-neutral-xx-weak)]">
+              {children}
+            </div>
+          ) : (
+            <div
+              className="
+                flex-1
+                flex
+                flex-col
+                min-h-0
+                bg-[var(--surface-neutral-xx-weak)]
+                rounded-[var(--radius-large)]
+                overflow-y-auto
+              "
+            >
+              {children}
+            </div>
+          )}
         </main>
       </div>
 
