@@ -112,6 +112,30 @@ const overtimeInsights = [
   },
 ] as const;
 
+const recentPulseHistory = [
+  {
+    id: '1',
+    employeeId: '2',
+    title: 'Michael Brown clocked in late twice last week',
+    description: 'Both late arrivals happened on early receiving shifts, which may point to an opening coverage pattern worth checking.',
+    actionLabel: 'Open Michael Brown',
+  },
+  {
+    id: '2',
+    employeeId: '1',
+    title: 'Jessica Martinez missed an opening shift earlier this month',
+    description: 'The front desk needed same-day backfill after a missed clock-in, so it may be worth confirming backup coverage plans.',
+    actionLabel: 'Open Jessica Martinez',
+  },
+  {
+    id: '3',
+    employeeId: '3',
+    title: 'Olivia Parker had a cluster of late starts 2 weeks ago',
+    description: 'That pattern has improved, but it is still a useful exception for managers to keep in mind when reviewing trends.',
+    actionLabel: 'Open Olivia Parker',
+  },
+] as const;
+
 const ganttHours = ['6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM'] as const;
 const ganttStartHour = 6;
 const ganttEndHour = 22;
@@ -424,6 +448,10 @@ function isWorkingStatus(status: StatusCard['status']) {
   return status === 'Clocked In' || status === 'Clocked In (late)' || status === 'On Break';
 }
 
+function hasMobileGpsClockIn(card: StatusCard) {
+  return card.clockInMethod === 'mobile' && Boolean(card.clockInAddress);
+}
+
 function EmployeeStatusCard({
   card,
   elapsedWorkingMinutes,
@@ -453,7 +481,10 @@ function EmployeeStatusCard({
       </h4>
       <div className="min-h-[40px]">
         {card.timeLabel ? (
-          <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{card.timeLabel}</p>
+          <p className="flex items-center gap-1.5 text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">
+            {hasMobileGpsClockIn(card) ? <Icon name="location-dot" size={11} className="shrink-0 text-[var(--color-primary-strong)]" /> : null}
+            <span>{card.timeLabel}</span>
+          </p>
         ) : (
           <p className="invisible text-[13px] leading-[19px]">Placeholder</p>
         )}
@@ -492,9 +523,11 @@ function EmployeeStatusCard({
 function EmployeeStatusRow({
   card,
   elapsedWorkingMinutes,
+  onOpen,
 }: {
   card: StatusCard;
   elapsedWorkingMinutes: number;
+  onOpen: () => void;
 }) {
   const todayDisplay = card.today
     ? formatDuration((parseDurationMinutes(card.today) ?? 0) + (isWorkingStatus(card.status) ? elapsedWorkingMinutes : 0))
@@ -502,14 +535,15 @@ function EmployeeStatusRow({
   const weeklyDisplay = formatDuration((parseDurationMinutes(card.weekly) ?? 0) + (isWorkingStatus(card.status) ? elapsedWorkingMinutes : 0));
 
   return (
-    <tr className="border-b border-[var(--border-neutral-xx-weak)] last:border-b-0">
+    <tr className="group border-b border-[var(--border-neutral-xx-weak)] transition-colors hover:bg-[var(--surface-neutral-xx-weak)] last:border-b-0">
       <td className="px-4 py-[15px]">
         <div className="flex items-start gap-3">
           <Avatar src={card.avatarSrc} alt={card.name} size={40} className="shadow-none" />
           <div className="min-w-0">
             <p className="truncate text-[15px] leading-[22px] text-[var(--text-neutral-x-strong)]">{card.name}</p>
-            <p className="truncate text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">
-              {card.timeLabel ?? card.project ?? 'No shift assigned'}
+            <p className="flex items-center gap-1.5 truncate text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">
+              {hasMobileGpsClockIn(card) ? <Icon name="location-dot" size={11} className="shrink-0 text-[var(--color-primary-strong)]" /> : null}
+              <span className="truncate">{card.timeLabel ?? card.project ?? 'No shift assigned'}</span>
             </p>
           </div>
         </div>
@@ -527,6 +561,16 @@ function EmployeeStatusRow({
         <span className={`inline-flex rounded-[6px] px-[10px] py-[5px] text-[13px] font-medium leading-[19px] ${statusBadgeClass(card.statusTone)}`}>
           {card.status}
         </span>
+      </td>
+      <td className="px-4 py-[15px] align-top">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] text-[var(--text-neutral-strong)] transition-colors hover:border-[var(--color-primary-strong)] hover:text-[var(--color-primary-strong)]"
+          aria-label={`Open ${card.name}`}
+        >
+          <Icon name="chevron-right" size={12} />
+        </button>
       </td>
     </tr>
   );
@@ -660,8 +704,12 @@ function EmployeeDetailModal({
         </div>
 
         <div className="flex items-center justify-end gap-3 px-6 pb-4 pt-2">
-          <button type="button" onClick={onClose} className="text-[15px] leading-[22px] font-medium text-[#0047FF]">
-            Cancel
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-5 py-2 text-[15px] leading-[22px] font-medium text-[var(--text-neutral-strong)]"
+          >
+            Go To Employee Timesheet
           </button>
           <button
             type="button"
@@ -764,10 +812,178 @@ function GanttScheduleView({ rows }: { rows: ScheduleRow[] }) {
   );
 }
 
+function TeamPulseDetailModal({
+  showPotentialIssues,
+  pulseSummary,
+  activeCards,
+  onClose,
+  onOpenEmployee,
+}: {
+  showPotentialIssues: boolean;
+  pulseSummary: {
+    totalEmployees: number;
+    clockedInCount: number;
+    onBreakCount: number;
+    lateCount: number;
+    absentCount: number;
+    offTodayCount: number;
+    issueCount: number;
+  };
+  activeCards: StatusCard[];
+  onClose: () => void;
+  onOpenEmployee: (employeeId: string) => void;
+}) {
+  const currentIssues = activeCards.filter((card) => card.status === 'Absent' || card.status === 'Clocked In (late)');
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#676260]/95 p-6">
+      <div
+        className="flex max-h-[calc(100vh-48px)] w-full max-w-[760px] flex-col overflow-hidden rounded-[16px] bg-[var(--surface-neutral-white)]"
+        style={{ boxShadow: '2px 2px 0px 2px rgba(56,49,47,0.13)' }}
+      >
+        <div className="flex items-center border-b border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] px-4 py-3">
+          <div>
+            <p className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">Team Pulse Details</p>
+            <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">
+              {showPotentialIssues ? 'Current issues and recommended next steps.' : 'Everything looks healthy right now. Recent exceptions are listed below for context.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] text-[var(--text-neutral-medium)]"
+          >
+            <Icon name="xmark" size={12} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-6 py-5">
+          <div className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className={`text-[20px] leading-[28px] font-semibold ${showPotentialIssues ? 'text-[#D35400]' : 'text-[var(--color-primary-strong)]'}`}>
+                  {showPotentialIssues ? `${pulseSummary.issueCount} Potential Issues` : 'All Clear Right Now'}
+                </p>
+                <p className="mt-1 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">
+                  {showPotentialIssues
+                    ? `${pulseSummary.absentCount} employee is absent and ${pulseSummary.lateCount} employees clocked in late.`
+                    : 'Everyone scheduled today is either on time, clocked in, or accounted for.'}
+                </p>
+              </div>
+              <div className="rounded-[12px] bg-[var(--surface-neutral-white)] px-4 py-3 text-right">
+                <p className="text-[12px] leading-[18px] text-[var(--text-neutral-medium)]">Clocked In</p>
+                <p className="text-[20px] leading-[28px] font-semibold text-[var(--color-primary-strong)]">
+                  {pulseSummary.clockedInCount}/{pulseSummary.totalEmployees}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {showPotentialIssues ? (
+            <div className="mt-5 space-y-4">
+              {currentIssues.map((card) => (
+                <div
+                  key={card.id}
+                  className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-5"
+                  style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.03)' }}
+                >
+                  <div className="flex items-start gap-4">
+                    <Avatar src={card.avatarSrc} alt={card.name} size="small" className="shadow-none" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-[16px] leading-[24px] font-semibold text-[var(--color-primary-strong)]">{card.name}</p>
+                        <span className={`inline-flex rounded-[999px] px-3 py-1 text-[12px] leading-[18px] font-semibold ${statusBadgeClass(card.statusTone)}`}>
+                          {card.status}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">
+                        {card.status === 'Absent'
+                          ? `${card.name} has not clocked in for the ${card.shiftLabel ?? 'scheduled'} shift.`
+                          : `${card.name} clocked in after the scheduled start time. Latest activity: ${card.timeLabel ?? 'No activity recorded'}`}
+                      </p>
+                      <p className="mt-1 text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">
+                        Recommended next step: {card.status === 'Absent' ? 'confirm coverage or contact the employee.' : 'check whether this is becoming a repeat pattern.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-[12px] bg-[var(--surface-neutral-xx-weak)] p-4">
+                    <p className="text-[12px] leading-[18px] font-semibold uppercase tracking-[0.04em] text-[var(--text-neutral-medium)]">Suggested message</p>
+                    <p className="mt-2 text-[14px] leading-[21px] text-[var(--text-neutral-strong)]">
+                      {card.status === 'Absent'
+                        ? `Hi ${card.name.split(' ')[0]}, checking in because I don't see a clock-in for your shift yet. Please let me know your status as soon as you can.`
+                        : `Hi ${card.name.split(' ')[0]}, I noticed you've had a few late clock-ins lately. Let's make sure nothing is getting in the way of your start time and talk through what support would help.`}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="rounded-full bg-[var(--color-primary-strong)] px-4 py-2 text-[14px] leading-[20px] font-medium text-white"
+                    >
+                      {card.status === 'Absent' ? 'Send Check-In Message' : 'Send Message'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={card.status === 'Absent' ? onClose : () => onOpenEmployee(card.id)}
+                      className="rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-4 py-2 text-[14px] leading-[20px] font-medium text-[var(--text-neutral-strong)]"
+                    >
+                      {card.status === 'Absent' ? 'Review Coverage' : 'Set Up Meeting'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 space-y-4">
+              {recentPulseHistory.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-5"
+                  style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.03)' }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[16px] leading-[24px] font-semibold text-[var(--color-primary-strong)]">{item.title}</p>
+                      <p className="mt-2 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{item.description}</p>
+                    </div>
+                    <span className="inline-flex rounded-[999px] bg-[var(--surface-neutral-xx-weak)] px-3 py-1 text-[12px] leading-[18px] font-semibold text-[var(--text-neutral-medium)]">
+                      Past issue
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => onOpenEmployee(item.employeeId)}
+                      className="rounded-full bg-[var(--color-primary-strong)] px-4 py-2 text-[14px] leading-[20px] font-medium text-white"
+                    >
+                      Review Pattern
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-4 py-2 text-[14px] leading-[20px] font-medium text-[var(--text-neutral-strong)]"
+                    >
+                      {item.actionLabel}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function TimeAttendance() {
   const [activeTab, setActiveTab] = useState<TabKey>('Live View');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showPotentialIssues, setShowPotentialIssues] = useState(false);
+  const [showPulseDetails, setShowPulseDetails] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [issueCycleToken, setIssueCycleToken] = useState(0);
   const [currentTime, setCurrentTime] = useState(() => new Date());
@@ -835,6 +1051,11 @@ export function TimeAttendance() {
   const handleResetPulse = () => {
     setShowPotentialIssues(false);
     setIssueCycleToken((value) => value + 1);
+  };
+
+  const handleOpenPulseEmployee = (employeeId: string) => {
+    setShowPulseDetails(false);
+    setSelectedEmployeeId(employeeId);
   };
 
   return (
@@ -922,13 +1143,16 @@ export function TimeAttendance() {
                     ))}
                   </div>
 
-                  <button
-                    type="button"
-                    className="mt-[17px] h-8 w-full rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-4 text-[15px] leading-[22px] font-medium text-[var(--text-neutral-strong)]"
-                    style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.04)' }}
-                  >
-                    See More Details
-                  </button>
+                  {showPotentialIssues ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowPulseDetails(true)}
+                      className="mt-[17px] h-8 w-full rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-4 text-[15px] leading-[22px] font-medium text-[var(--text-neutral-strong)]"
+                      style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.04)' }}
+                    >
+                      See More Details
+                    </button>
+                  ) : null}
                 </section>
 
                 <section
@@ -959,10 +1183,6 @@ export function TimeAttendance() {
                     <Icon name="clock" size={18} className="text-[var(--color-primary-strong)]" />
                     <h3 className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">Overtime</h3>
                   </div>
-
-                  <p className="mt-2 text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">
-                    AI watchouts based on recent hours, current schedules, and who is trending toward daily or weekly overtime.
-                  </p>
 
                   <div className="mt-3 space-y-3">
                     {overtimeInsights.map((item) => (
@@ -1056,7 +1276,8 @@ export function TimeAttendance() {
                             ['Hours Today', 'w-[14%]'],
                             ['Weekly Hours', 'w-[15%]'],
                             ['OT', 'w-[11%]'],
-                            ['Current Status', 'rounded-r-[8px]'],
+                            ['Current Status', ''],
+                            ['Open', 'w-[8%] rounded-r-[8px]'],
                           ].map(([label, extraClass]) => (
                             <th
                               key={label}
@@ -1069,7 +1290,12 @@ export function TimeAttendance() {
                       </thead>
                       <tbody>
                         {activeCards.map((card) => (
-                          <EmployeeStatusRow key={card.id} card={card} elapsedWorkingMinutes={elapsedWorkingMinutes} />
+                          <EmployeeStatusRow
+                            key={card.id}
+                            card={card}
+                            elapsedWorkingMinutes={elapsedWorkingMinutes}
+                            onOpen={() => setSelectedEmployeeId(card.id)}
+                          />
                         ))}
                       </tbody>
                     </table>
@@ -1096,6 +1322,15 @@ export function TimeAttendance() {
           )}
         </div>
       </div>
+      {showPulseDetails ? (
+        <TeamPulseDetailModal
+          showPotentialIssues={showPotentialIssues}
+          pulseSummary={pulseSummary}
+          activeCards={activeCards}
+          onClose={() => setShowPulseDetails(false)}
+          onOpenEmployee={handleOpenPulseEmployee}
+        />
+      ) : null}
       {selectedEmployee ? (
         <EmployeeDetailModal
           employee={selectedEmployee}
