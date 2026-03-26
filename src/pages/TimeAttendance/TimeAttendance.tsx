@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Avatar, Icon } from '../../components';
 
 const tabs = ['Live View', 'Calendar', 'Scheduling', 'Timesheets'] as const;
@@ -46,7 +46,22 @@ interface ScheduleRow {
   segments?: ScheduleSegment[];
 }
 
-const cards: StatusCard[] = [
+const calmCards: StatusCard[] = [
+  { id: '1', status: 'Clocked In', statusTone: 'green', name: 'Jessica Martinez', avatarSrc: 'https://i.pravatar.cc/160?img=1', department: 'Operations', shiftLabel: 'Front Desk • 9:00AM-5:00PM', timeLabel: 'Clocked in 8:57AM', project: 'Front Desk » Lobby Coverage', today: '1h 07m', weekly: '29h 47m', overtime: 'OT Status', progressPercent: 34, progressTone: 'green', clockInMethod: 'terminal' },
+  { id: '2', status: 'Clocked In', statusTone: 'green', name: 'Michael Brown', avatarSrc: 'https://i.pravatar.cc/160?img=51', department: 'Warehouse', shiftLabel: 'Receiving • 8:30AM-5:00PM', timeLabel: 'Clocked in 8:28AM', project: 'Warehouse Receiving » Morning Intake', today: '1h 33m', weekly: '31h 50m', overtime: 'OT Status', progressPercent: 51, progressTone: 'green', clockInMethod: 'terminal' },
+  { id: '3', status: 'Clocked In', statusTone: 'green', name: 'Olivia Parker', avatarSrc: 'https://i.pravatar.cc/160?img=26', department: 'Support', shiftLabel: 'Benefits Queue • 8:45AM-5:15PM', timeLabel: 'Clocked in 8:42AM', project: 'Support Queue » Benefits Escalations', today: '1h 18m', weekly: '34h 24m', overtime: 'OT Status', progressPercent: 47, progressTone: 'green', clockInMethod: 'mobile', clockInAddress: '525 W Ashton Blvd, Lehi, UT 84043' },
+  { id: '4', status: 'On Break', statusTone: 'blue', name: 'Frank Rodriguez', avatarSrc: 'https://i.pravatar.cc/160?img=13', department: 'Finance', shiftLabel: 'Payroll • 8:00AM-5:00PM', timeLabel: 'Clocked in 8:02AM • Break started 10:18AM', project: 'Payroll Review » Biweekly Closeout', today: '2h 16m', weekly: '37h 31m', overtime: 'OT Status', progressPercent: 100, progressTone: 'red', extraMetricLabel: 'OT', extraMetricValue: '1h 44m', clockInMethod: 'web' },
+  { id: '5', status: 'Clocked In', statusTone: 'green', name: 'Grace Anderson', avatarSrc: 'https://i.pravatar.cc/160?img=48', department: 'People Ops', shiftLabel: 'Onboarding • 9:00AM-5:30PM', timeLabel: 'Clocked in 8:55AM', project: 'People Ops » New Hire Orientation', today: '1h 24m', weekly: '33h 13m', overtime: 'OT Status', progressPercent: 72, progressTone: 'amber', clockInMethod: 'mobile', clockInAddress: '42 N Center St, American Fork, UT 84003' },
+  { id: '6', status: 'Clocked In', statusTone: 'green', name: 'Liam Foster', avatarSrc: 'https://i.pravatar.cc/160?img=17', department: 'Marketing', shiftLabel: 'Creative • 8:30AM-5:00PM', timeLabel: 'Clocked in 8:43AM', project: 'Brand Studio » Campaign Reviews', today: '1h 39m', weekly: '35h 21m', overtime: 'OT Status', progressPercent: 69, progressTone: 'amber', clockInMethod: 'terminal' },
+  { id: '7', status: 'Clocked In', statusTone: 'green', name: 'Noah Jackson', avatarSrc: 'https://i.pravatar.cc/160?img=52', department: 'Operations', shiftLabel: 'Vendor Ops • 9:00AM-5:00PM', timeLabel: 'Clocked in 8:58AM', project: 'Operations » Vendor Coordination', today: '1h 18m', weekly: '32h 47m', overtime: 'OT Status', progressPercent: 63, progressTone: 'amber', clockInMethod: 'web' },
+  { id: '8', status: 'PTO', statusTone: 'gray', name: 'Emma Wilson', avatarSrc: 'https://i.pravatar.cc/160?img=44', department: 'Finance', shiftLabel: 'Approved PTO', timeLabel: 'Approved PTO for today', project: 'Out of office • Returns tomorrow', weekly: '24h 10m', overtime: 'OT Status', progressPercent: 24, progressTone: 'green' },
+  { id: '9', status: 'Off Today', statusTone: 'gray', name: 'Taylor Morgan', avatarSrc: 'https://i.pravatar.cc/160?img=20', department: 'Technology', shiftLabel: 'Scheduled off', timeLabel: 'Next shift starts tomorrow at 8:00AM', project: 'Scheduled day off', weekly: '36h 12m', overtime: 'OT Status', progressPercent: 70, progressTone: 'amber' },
+  { id: '10', status: 'Clocked In', statusTone: 'green', name: 'Sarah Chen', avatarSrc: 'https://i.pravatar.cc/160?img=5', department: 'Executive', shiftLabel: 'Leadership • 8:30AM-5:30PM', timeLabel: 'Clocked in 8:31AM', project: 'Executive » Planning Review', today: '1h 51m', weekly: '38h 08m', overtime: 'OT Status', progressPercent: 82, progressTone: 'amber', clockInMethod: 'mobile', clockInAddress: '500 Terry A Francois Blvd, San Francisco, CA 94158' },
+  { id: '11', status: 'Off Today', statusTone: 'gray', name: 'Ava Thompson', avatarSrc: 'https://i.pravatar.cc/160?img=32', department: 'Retail', shiftLabel: 'Scheduled off', timeLabel: 'Weekend schedule', project: 'No assigned shift today', weekly: '29h 55m', overtime: 'OT Status', progressPercent: 15, progressTone: 'green' },
+  { id: '12', status: 'Clocked In', statusTone: 'green', name: 'Daniel Kim', avatarSrc: 'https://i.pravatar.cc/160?img=12', department: 'IT', shiftLabel: 'Help Desk • 8:30AM-5:00PM', timeLabel: 'Clocked in 8:48AM', project: 'IT Help Desk » Device Setup', today: '1h 29m', weekly: '34h 44m', overtime: 'OT Status', progressPercent: 58, progressTone: 'amber', clockInMethod: 'terminal' },
+];
+
+const issueCards: StatusCard[] = [
   { id: '1', status: 'Absent', statusTone: 'red', name: 'Jessica Martinez', avatarSrc: 'https://i.pravatar.cc/160?img=1', department: 'Operations', shiftLabel: 'Front Desk • 9:00AM-5:00PM', timeLabel: 'No clock-in recorded', project: 'Front Desk shift started at 9:00AM', weekly: '28h 40m', overtime: 'OT Status', progressPercent: 18, progressTone: 'green' },
   { id: '2', status: 'Clocked In (late)', statusTone: 'amber', name: 'Michael Brown', avatarSrc: 'https://i.pravatar.cc/160?img=51', department: 'Warehouse', shiftLabel: 'Receiving • 8:30AM-5:00PM', timeLabel: 'Clocked in 9:14AM', project: 'Warehouse Receiving » Morning Intake', today: '0h 48m', weekly: '31h 05m', overtime: 'OT Status', progressPercent: 46, progressTone: 'green', clockInMethod: 'terminal' },
   { id: '3', status: 'Clocked In (late)', statusTone: 'amber', name: 'Olivia Parker', avatarSrc: 'https://i.pravatar.cc/160?img=26', department: 'Support', shiftLabel: 'Benefits Queue • 8:45AM-5:15PM', timeLabel: 'Clocked in 9:07AM', project: 'Support Queue » Benefits Escalations', today: '1h 12m', weekly: '34h 02m', overtime: 'OT Status', progressPercent: 41, progressTone: 'green', clockInMethod: 'mobile', clockInAddress: '525 W Ashton Blvd, Lehi, UT 84043' },
@@ -187,6 +202,21 @@ function scheduleSegmentClass(tone: ScheduleSegment['tone']) {
   return tone === 'amber' ? 'bg-[#FFB400]' : 'bg-[#10C47A]';
 }
 
+function parseDurationMinutes(duration?: string) {
+  if (!duration) return null;
+  const match = duration.match(/(\d+)h\s*(\d+)m/i);
+  if (!match) return null;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function formatDuration(minutes?: number | null) {
+  if (minutes === null || minutes === undefined) return '--';
+  const safeMinutes = Math.max(0, Math.floor(minutes));
+  const hours = Math.floor(safeMinutes / 60);
+  const remainingMinutes = safeMinutes % 60;
+  return `${hours}h ${String(remainingMinutes).padStart(2, '0')}m`;
+}
+
 function parseDurationHours(duration?: string) {
   if (!duration) return 0;
   const match = duration.match(/(\d+)h\s*(\d+)m/i);
@@ -316,7 +346,22 @@ function progressBarClass(tone: StatusCard['progressTone']) {
   return 'bg-[#D7263D]';
 }
 
-function EmployeeStatusCard({ card }: { card: StatusCard }) {
+function isWorkingStatus(status: StatusCard['status']) {
+  return status === 'Clocked In' || status === 'Clocked In (late)' || status === 'On Break';
+}
+
+function EmployeeStatusCard({
+  card,
+  elapsedWorkingMinutes,
+}: {
+  card: StatusCard;
+  elapsedWorkingMinutes: number;
+}) {
+  const todayDisplay = card.today
+    ? formatDuration((parseDurationMinutes(card.today) ?? 0) + (isWorkingStatus(card.status) ? elapsedWorkingMinutes : 0))
+    : '--';
+  const weeklyDisplay = formatDuration((parseDurationMinutes(card.weekly) ?? 0) + (isWorkingStatus(card.status) ? elapsedWorkingMinutes : 0));
+
   return (
     <div
       className="flex min-h-[256px] flex-col rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] px-4 py-[14px]"
@@ -350,11 +395,11 @@ function EmployeeStatusCard({ card }: { card: StatusCard }) {
       <div className="mt-4 grid grid-cols-3 gap-3">
         <div>
           <p className="text-[13px] leading-[19px] text-[var(--text-neutral-x-strong)]">Today</p>
-          <p className="text-[15px] leading-[22px] font-bold text-[var(--text-neutral-x-strong)]">{card.today ?? '--'}</p>
+          <p className="text-[15px] leading-[22px] font-bold text-[var(--text-neutral-x-strong)]">{todayDisplay}</p>
         </div>
         <div>
           <p className="text-[13px] leading-[19px] text-[var(--text-neutral-x-strong)]">Weekly</p>
-          <p className="text-[15px] leading-[22px] font-bold text-[var(--text-neutral-x-strong)]">{card.weekly}</p>
+          <p className="text-[15px] leading-[22px] font-bold text-[var(--text-neutral-x-strong)]">{weeklyDisplay}</p>
         </div>
         <div>
           <p className={`text-[13px] leading-[19px] text-[var(--text-neutral-x-strong)] ${card.extraMetricLabel ? '' : 'invisible'}`}>
@@ -376,7 +421,18 @@ function EmployeeStatusCard({ card }: { card: StatusCard }) {
   );
 }
 
-function EmployeeStatusRow({ card }: { card: StatusCard }) {
+function EmployeeStatusRow({
+  card,
+  elapsedWorkingMinutes,
+}: {
+  card: StatusCard;
+  elapsedWorkingMinutes: number;
+}) {
+  const todayDisplay = card.today
+    ? formatDuration((parseDurationMinutes(card.today) ?? 0) + (isWorkingStatus(card.status) ? elapsedWorkingMinutes : 0))
+    : '--';
+  const weeklyDisplay = formatDuration((parseDurationMinutes(card.weekly) ?? 0) + (isWorkingStatus(card.status) ? elapsedWorkingMinutes : 0));
+
   return (
     <tr className="border-b border-[var(--border-neutral-xx-weak)] last:border-b-0">
       <td className="px-4 py-[15px]">
@@ -391,10 +447,10 @@ function EmployeeStatusRow({ card }: { card: StatusCard }) {
         </div>
       </td>
       <td className="px-4 py-[15px] align-top text-[15px] leading-[22px] text-[var(--text-neutral-x-strong)]">
-        {card.today ?? '--'}
+        {todayDisplay}
       </td>
       <td className="px-4 py-[15px] align-top text-[15px] leading-[22px] text-[var(--text-neutral-x-strong)]">
-        {card.weekly}
+        {weeklyDisplay}
       </td>
       <td className="px-4 py-[15px] align-top text-[15px] leading-[22px] text-[var(--text-neutral-x-strong)]">
         {card.extraMetricLabel === 'OT' && card.extraMetricValue ? card.extraMetricValue : '--'}
@@ -411,10 +467,17 @@ function EmployeeStatusRow({ card }: { card: StatusCard }) {
 function EmployeeDetailModal({
   employee,
   onClose,
+  elapsedWorkingMinutes,
 }: {
   employee: StatusCard;
   onClose: () => void;
+  elapsedWorkingMinutes: number;
 }) {
+  const todayDisplay = employee.today
+    ? formatDuration((parseDurationMinutes(employee.today) ?? 0) + (isWorkingStatus(employee.status) ? elapsedWorkingMinutes : 0))
+    : '--';
+  const weeklyDisplay = formatDuration((parseDurationMinutes(employee.weekly) ?? 0) + (isWorkingStatus(employee.status) ? elapsedWorkingMinutes : 0));
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#676260]/95 p-6">
       <div
@@ -455,8 +518,8 @@ function EmployeeDetailModal({
             <div className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
-                  ['Today', employee.today ?? '--'],
-                  ['Weekly', employee.weekly],
+                  ['Today', todayDisplay],
+                  ['Weekly', weeklyDisplay],
                   [employee.extraMetricLabel ?? 'OT', employee.extraMetricValue ?? '--'],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4">
@@ -636,9 +699,10 @@ export function TimeAttendance() {
   const [activeTab, setActiveTab] = useState<TabKey>('Live View');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showPotentialIssues, setShowPotentialIssues] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<StatusCard | null>(null);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [issueCycleToken, setIssueCycleToken] = useState(0);
   const [currentTime, setCurrentTime] = useState(() => new Date());
+  const initialMinuteRef = useRef(Math.floor(Date.now() / 60000));
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -656,16 +720,18 @@ export function TimeAttendance() {
     return () => window.clearTimeout(timer);
   }, [issueCycleToken]);
 
+  const activeCards = showPotentialIssues ? issueCards : calmCards;
+
   const pulseSummary = useMemo(() => {
-    const clockedInCount = cards.filter((card) => card.status === 'Clocked In' || card.status === 'Clocked In (late)' || card.status === 'On Break').length;
-    const onBreakCount = cards.filter((card) => card.status === 'On Break').length;
-    const lateCount = cards.filter((card) => card.status === 'Clocked In (late)').length;
-    const absentCount = cards.filter((card) => card.status === 'Absent').length;
-    const offTodayCount = cards.filter((card) => card.status === 'Off Today' || card.status === 'PTO').length;
+    const clockedInCount = activeCards.filter((card) => card.status === 'Clocked In' || card.status === 'Clocked In (late)' || card.status === 'On Break').length;
+    const onBreakCount = activeCards.filter((card) => card.status === 'On Break').length;
+    const lateCount = activeCards.filter((card) => card.status === 'Clocked In (late)').length;
+    const absentCount = activeCards.filter((card) => card.status === 'Absent').length;
+    const offTodayCount = activeCards.filter((card) => card.status === 'Off Today' || card.status === 'PTO').length;
     const issueCount = absentCount + lateCount;
 
     return {
-      totalEmployees: cards.length,
+      totalEmployees: activeCards.length,
       clockedInCount,
       onBreakCount,
       lateCount,
@@ -673,7 +739,7 @@ export function TimeAttendance() {
       offTodayCount,
       issueCount,
     };
-  }, []);
+  }, [activeCards]);
 
   const teamPulseStats = [
     { label: 'Clocked In', value: `${pulseSummary.clockedInCount}/${pulseSummary.totalEmployees}`, icon: 'stopwatch' as const },
@@ -683,7 +749,10 @@ export function TimeAttendance() {
     { label: 'Off Today', value: `${pulseSummary.offTodayCount}`, icon: 'calendar' as const },
   ] as const;
 
-  const scheduleRows = useMemo(() => cards.map((card, index) => buildScheduleRow(card, index)), []);
+  const currentMinute = Math.floor(currentTime.getTime() / 60000);
+  const elapsedWorkingMinutes = Math.max(0, currentMinute - initialMinuteRef.current);
+  const scheduleRows = useMemo(() => activeCards.map((card, index) => buildScheduleRow(card, index)), [activeCards]);
+  const selectedEmployee = selectedEmployeeId ? activeCards.find((card) => card.id === selectedEmployeeId) ?? null : null;
   const liveTimeLabel = useMemo(
     () =>
       new Intl.DateTimeFormat(undefined, {
@@ -877,14 +946,14 @@ export function TimeAttendance() {
 
                 {viewMode === 'grid' ? (
                   <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    {cards.map((card) => (
+                    {activeCards.map((card) => (
                       <button
                         key={card.id}
                         type="button"
-                        onClick={() => setSelectedEmployee(card)}
+                        onClick={() => setSelectedEmployeeId(card.id)}
                         className="cursor-pointer text-left"
                       >
-                        <EmployeeStatusCard card={card} />
+                        <EmployeeStatusCard card={card} elapsedWorkingMinutes={elapsedWorkingMinutes} />
                       </button>
                     ))}
                   </div>
@@ -910,8 +979,8 @@ export function TimeAttendance() {
                         </tr>
                       </thead>
                       <tbody>
-                        {cards.map((card) => (
-                          <EmployeeStatusRow key={card.id} card={card} />
+                        {activeCards.map((card) => (
+                          <EmployeeStatusRow key={card.id} card={card} elapsedWorkingMinutes={elapsedWorkingMinutes} />
                         ))}
                       </tbody>
                     </table>
@@ -939,7 +1008,11 @@ export function TimeAttendance() {
         </div>
       </div>
       {selectedEmployee ? (
-        <EmployeeDetailModal employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} />
+        <EmployeeDetailModal
+          employee={selectedEmployee}
+          elapsedWorkingMinutes={elapsedWorkingMinutes}
+          onClose={() => setSelectedEmployeeId(null)}
+        />
       ) : null}
     </div>
   );
