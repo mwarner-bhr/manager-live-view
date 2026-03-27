@@ -64,6 +64,8 @@ import {
   faPaperPlane,
   faEyeSlash,
   faUsers,
+  faAlarmClock,
+  faChampagneGlasses,
   faCirclePlus,
   faBullseye,
   faBullhorn,
@@ -90,7 +92,6 @@ import {
   faRotateLeft,
   faStopwatch,
   faMugHot,
-  faClockRotateLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import {
@@ -194,6 +195,8 @@ export type IconName =
   | 'zoom-out'
   | 'file-export'
   | 'sparkles'
+  | 'alarm-clock'
+  | 'champagne-glasses'
   | 'paperclip'
   | 'microphone'
   | 'expand'
@@ -284,7 +287,6 @@ const faIconMap = {
   'clock': faClock,
   'stopwatch': faStopwatch,
   'mug-hot': faMugHot,
-  'calendar-clock': faClockRotateLeft,
   'clock-regular': faClockRegular,
   'wrench': faWrench,
   'calendar': faCalendar,
@@ -312,6 +314,8 @@ const faIconMap = {
   'link': faLink,
   'arrows-rotate': faArrowsRotate,
   'sparkles': faWandMagicSparkles,
+  'alarm-clock': faAlarmClock,
+  'champagne-glasses': faChampagneGlasses,
   'paperclip': faPaperclip,
   'microphone': faMicrophone,
   'expand': faExpand,
@@ -430,6 +434,47 @@ export function Icon({ name, size = 24, className = '', variant = 'solid', style
 
   if (name === 'circle-plus-lined') {
     return <CirclePlus size={size} className={className} strokeWidth={1.5} style={style} />;
+  }
+
+  if (name === 'calendar-clock') {
+    if (variant === 'solid') {
+      return (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          width={size}
+          height={size}
+          className={className}
+          style={style}
+          fill="currentColor"
+        >
+          <path d="M7 2.75a.75.75 0 0 1 .75.75V5h8.5V3.5a.75.75 0 0 1 1.5 0V5h.75A2.5 2.5 0 0 1 21 7.5v11A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5v-11A2.5 2.5 0 0 1 5.5 5h.75V3.5A.75.75 0 0 1 7 2.75Zm-2.5 6v9.75c0 .552.448 1 1 1h13a1 1 0 0 0 1-1V8.75h-15Zm12.75 3.5a4.25 4.25 0 1 1 0 8.5 4.25 4.25 0 0 1 0-8.5Zm0 1.5a.75.75 0 0 0-.75.75v1.79c0 .267.142.514.373.648l1.3.75a.75.75 0 0 0 .75-1.299l-.923-.533V14.5a.75.75 0 0 0-.75-.75Z" />
+        </svg>
+      );
+    }
+
+    return (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        className={className}
+        style={style}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3.5" y="5.5" width="17" height="15" rx="3" />
+        <path d="M7.5 3.5v4" />
+        <path d="M16.5 3.5v4" />
+        <path d="M3.5 9.5h17" />
+        <circle cx="17.25" cy="16.75" r="3.25" fill="var(--surface-neutral-white, white)" />
+        <path d="M17.25 14.95v1.95l1.35.8" />
+      </svg>
+    );
   }
 
   // Handle icons that need Lucide for regular variant

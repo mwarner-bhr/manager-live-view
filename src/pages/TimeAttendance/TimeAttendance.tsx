@@ -4,6 +4,8 @@ import { Avatar, Icon } from '../../components';
 const tabs = ['Live View', 'Calendar', 'Scheduling', 'Timesheets'] as const;
 type TabKey = typeof tabs[number];
 type ViewMode = 'grid' | 'list' | 'gantt';
+type InsightFilter = 'all' | 'attendance' | 'overtime';
+type StatusFilter = 'all' | 'clocked-in' | 'on-break' | 'late' | 'absent' | 'off-today';
 
 interface StatusCard {
   id: string;
@@ -24,6 +26,19 @@ interface StatusCard {
   extraMetricValue?: string;
   clockInMethod?: 'mobile' | 'web' | 'terminal';
   clockInAddress?: string;
+}
+
+interface InsightItem {
+  id: string;
+  employeeId: string;
+  type: 'attendance' | 'overtime';
+  state: 'active' | 'resolved' | 'archived';
+  dateLabel: string;
+  icon: 'champagne-glasses' | 'alarm-clock' | 'users' | 'stopwatch';
+  title: string;
+  description: string;
+  ctaLabel: string;
+  ctaDescription: string;
 }
 
 interface ScheduleSegment {
@@ -76,41 +91,80 @@ const issueCards: StatusCard[] = [
   { id: '12', status: 'Clocked In', statusTone: 'green', name: 'Daniel Kim', avatarSrc: 'https://i.pravatar.cc/160?img=12', department: 'IT', shiftLabel: 'Help Desk • 8:30AM-5:00PM', timeLabel: 'Clocked in 8:48AM', project: 'IT Help Desk » Device Setup', today: '1h 29m', weekly: '34h 44m', overtime: 'OT Status', progressPercent: 58, progressTone: 'amber', clockInMethod: 'terminal' },
 ];
 
-const insights = [
+const insights: InsightItem[] = [
   {
     id: '1',
+    employeeId: '2',
+    type: 'attendance',
+    state: 'active',
+    dateLabel: 'Today',
+    icon: 'alarm-clock',
     title: 'Michael Brown has a late pattern',
     description: 'Michael has clocked in late 3 times in the last 2 weeks, most often on opening shifts.',
+    ctaLabel: 'Send Coaching Message',
+    ctaDescription: 'Share a quick note acknowledging the pattern and asking whether anything is making opening shifts harder lately.',
   },
   {
     id: '2',
-    title: 'Grace Anderson is trending consistent',
-    description: 'Grace has started on time for 10 straight scheduled shifts over the last 2 weeks.',
+    employeeId: '5',
+    type: 'attendance',
+    state: 'active',
+    dateLabel: 'Today',
+    icon: 'champagne-glasses',
+    title: 'Grace Anderson has been showing up strong',
+    description: 'Grace has started on time for 10 straight scheduled shifts over the last 2 weeks, which is worth celebrating.',
+    ctaLabel: 'Send Recognition Note',
+    ctaDescription: 'Reinforce the positive pattern with a quick thank-you and encourage Grace to keep the consistency going.',
   },
   {
     id: '3',
+    employeeId: '1',
+    type: 'attendance',
+    state: 'active',
+    dateLabel: 'Yesterday',
+    icon: 'users',
     title: 'Front desk coverage has been tight',
     description: 'The opening front desk shift has had a late or missed clock-in 4 times in the last 14 days.',
-  },
-] as const;
-
-const overtimeInsights = [
+    ctaLabel: 'Review Opening Coverage',
+    ctaDescription: 'Use this as a prompt to adjust backup coverage or check whether the opening schedule needs a buffer.',
+  },  
   {
-    id: '1',
+    id: '4',
+    employeeId: '4',
+    type: 'overtime',
+    state: 'active',
+    dateLabel: 'Today',
+    icon: 'stopwatch',
     title: 'Frank Rodriguez is already in daily OT',
     description: 'Frank is on track to finish today with more than 2 hours of overtime if his shift stays unchanged.',
+    ctaLabel: 'Review Today’s Schedule',
+    ctaDescription: 'Consider whether Frank should stay on the same assignment for the rest of today or whether coverage can be shifted.',
   },
   {
-    id: '2',
+    id: '5',
+    employeeId: '10',
+    type: 'overtime',
+    state: 'resolved',
+    dateLabel: 'Mar 24, 2026',
+    icon: 'stopwatch',
     title: 'Sarah Chen may cross weekly overtime tomorrow',
     description: 'Based on her current schedule, Sarah is projected to pass 40 hours by late tomorrow afternoon.',
+    ctaLabel: 'Adjust Remaining Hours',
+    ctaDescription: 'Take a look at Sarah’s remaining schedule this week and decide whether her hours should be redistributed.',
   },
   {
-    id: '3',
+    id: '6',
+    employeeId: '12',
+    type: 'overtime',
+    state: 'archived',
+    dateLabel: 'Mar 20, 2026',
+    icon: 'stopwatch',
     title: 'Grace and Daniel are approaching OT',
     description: 'If both work their full scheduled shifts for the rest of the week, each is within a few hours of overtime.',
+    ctaLabel: 'Review OT Risk',
+    ctaDescription: 'Check upcoming assignments and decide whether to rebalance hours before they cross into overtime.',
   },
-] as const;
+];
 
 const recentPulseHistory = [
   {
@@ -159,20 +213,43 @@ function PulseIcon() {
   );
 }
 
-function InsightTile({ title, description }: { title: string; description: string }) {
+function InsightTile({
+  icon,
+  title,
+  onClick,
+}: {
+  icon: InsightItem['icon'];
+  title: string;
+  onClick?: () => void;
+}) {
+  const iconToneClass =
+    icon === 'champagne-glasses'
+      ? 'bg-[#FFF3D9] text-[#A56417]'
+      : icon === 'alarm-clock'
+        ? 'bg-[#FDE4E1] text-[#B34B3D]'
+        : icon === 'users'
+          ? 'bg-[#E6F4FF] text-[#006FA6]'
+          : 'bg-[#FFF2E7] text-[#CC5C00]';
+
   return (
     <button
       type="button"
-      className="w-full rounded-[16px] p-[1px] text-left"
+      onClick={onClick}
+      className="w-full rounded-[16px] p-[1px] text-left transition-transform duration-150 hover:-translate-y-[1px]"
       style={{
         background: 'linear-gradient(135deg, #BEE5C8 0%, #D8D1FF 50%, #F7C7A1 100%)',
         boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.04)',
       }}
     >
-      <span className="flex items-center gap-4 rounded-[15px] bg-[var(--surface-neutral-white)] px-4 py-[14px]">
+      <span className="flex items-center gap-3 rounded-[15px] bg-[var(--surface-neutral-white)] px-4 py-[14px] transition-colors duration-150 hover:bg-[var(--surface-neutral-xx-weak)]">
+        <span
+          className={`flex h-12 w-12 items-center justify-center rounded-[14px] ${iconToneClass}`}
+          style={{ boxShadow: 'inset 0 0 0 1px rgba(56,49,47,0.04)' }}
+        >
+          <Icon name={icon} size={18} />
+        </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[15px] leading-[22px] font-medium text-[#006FA6]">{title}</span>
-          <span className="block text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{description}</span>
         </span>
         <Icon name="chevron-right" size={16} className="shrink-0 text-[var(--text-neutral-medium)]" />
       </span>
@@ -180,20 +257,152 @@ function InsightTile({ title, description }: { title: string; description: strin
   );
 }
 
-function OvertimeInsightTile({ title, description }: { title: string; description: string }) {
+function InsightDetailModal({
+  insight,
+  onClose,
+  onOpenEmployee,
+}: {
+  insight: InsightItem;
+  onClose: () => void;
+  onOpenEmployee: (employeeId: string) => void;
+}) {
   return (
-    <div
-      className="rounded-[14px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] px-4 py-3"
-      style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.03)' }}
-    >
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF2E7] text-[#CC5C00]">
-          <Icon name="clock" size={14} />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[15px] leading-[22px] font-medium text-[var(--color-primary-strong)]">{title}</span>
-          <span className="mt-1 block text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{description}</span>
-        </span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#676260]/95 p-6">
+      <div
+        className="w-full max-w-[520px] overflow-hidden rounded-[16px] bg-[var(--surface-neutral-white)]"
+        style={{ boxShadow: '2px 2px 0px 2px rgba(56,49,47,0.13)' }}
+      >
+        <div className="flex items-center border-b border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] px-4 py-3">
+          <p className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">Insight</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] text-[var(--text-neutral-medium)]"
+          >
+            <Icon name="xmark" size={12} />
+          </button>
+        </div>
+
+        <div className="px-5 py-5">
+          <div className="rounded-[14px] bg-[var(--surface-neutral-xx-weak)] p-4">
+            <p className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">{insight.title}</p>
+            <p className="mt-2 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{insight.description}</p>
+          </div>
+
+          <div className="mt-4 rounded-[14px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4">
+            <p className="text-[12px] leading-[18px] font-semibold uppercase tracking-[0.04em] text-[var(--text-neutral-medium)]">Suggested next step</p>
+            <p className="mt-2 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">{insight.ctaDescription}</p>
+          </div>
+
+          <div className="mt-5 flex flex-wrap justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => onOpenEmployee(insight.employeeId)}
+              className="rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-4 py-2 text-[14px] leading-[20px] font-medium text-[var(--text-neutral-strong)]"
+            >
+              Open Employee
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full bg-[var(--color-primary-strong)] px-4 py-2 text-[14px] leading-[20px] font-medium text-white"
+            >
+              {insight.ctaLabel}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AllInsightsModal({
+  insights,
+  onClose,
+  onOpenInsight,
+}: {
+  insights: InsightItem[];
+  onClose: () => void;
+  onOpenInsight: (insightId: string) => void;
+}) {
+  const sections = [
+    { key: 'active', label: 'Active', items: insights.filter((item) => item.state === 'active') },
+    { key: 'resolved', label: 'Resolved', items: insights.filter((item) => item.state === 'resolved') },
+    { key: 'archived', label: 'Archived', items: insights.filter((item) => item.state === 'archived') },
+  ] as const;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#676260]/95 p-6">
+      <div
+        className="flex max-h-[calc(100vh-48px)] w-full max-w-[760px] flex-col overflow-hidden rounded-[16px] bg-[var(--surface-neutral-white)]"
+        style={{ boxShadow: '2px 2px 0px 2px rgba(56,49,47,0.13)' }}
+      >
+        <div className="flex items-center border-b border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] px-4 py-3">
+          <div>
+            <p className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">All Insights</p>
+            <p className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">Review active, resolved, and archived insight history by date.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] text-[var(--text-neutral-medium)]"
+          >
+            <Icon name="xmark" size={12} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-6 py-5">
+          <div className="space-y-6">
+            {sections.map((section) =>
+              section.items.length > 0 ? (
+                <section key={section.key}>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[16px] leading-[24px] font-semibold text-[var(--color-primary-strong)]">{section.label}</h4>
+                    <span className="text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{section.items.length} insight{section.items.length === 1 ? '' : 's'}</span>
+                  </div>
+
+                  <div className="mt-3 space-y-3">
+                    {section.items.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => onOpenInsight(item.id)}
+                        className="w-full rounded-[16px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4 text-left transition-colors hover:bg-[var(--surface-neutral-xx-weak)]"
+                        style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.03)' }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span
+                            className={`flex h-10 w-10 items-center justify-center rounded-[12px] ${
+                              item.icon === 'champagne-glasses'
+                                ? 'bg-[#FFF3D9] text-[#A56417]'
+                                : item.icon === 'alarm-clock'
+                                  ? 'bg-[#FDE4E1] text-[#B34B3D]'
+                                  : item.icon === 'users'
+                                    ? 'bg-[#E6F4FF] text-[#006FA6]'
+                                    : 'bg-[#FFF2E7] text-[#CC5C00]'
+                            }`}
+                          >
+                            <Icon name={item.icon} size={16} />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-[15px] leading-[22px] font-medium text-[var(--color-primary-strong)]">{item.title}</p>
+                              <span className="rounded-full bg-[var(--surface-neutral-xx-weak)] px-2.5 py-1 text-[11px] leading-[16px] font-semibold text-[var(--text-neutral-medium)]">
+                                {item.type === 'overtime' ? 'Overtime' : 'Attendance'}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-[13px] leading-[19px] text-[var(--text-neutral-medium)]">{item.dateLabel}</p>
+                          </div>
+                          <Icon name="chevron-right" size={14} className="shrink-0 text-[var(--text-neutral-medium)]" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ) : null
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -866,7 +1075,11 @@ function TeamPulseDetailModal({
                 </p>
                 <p className="mt-1 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]">
                   {showPotentialIssues
-                    ? `${pulseSummary.absentCount} employee is absent and ${pulseSummary.lateCount} employees clocked in late.`
+                    ? pulseSummary.absentCount > 0 && pulseSummary.lateCount > 0
+                      ? `${pulseSummary.absentCount} employee is absent and ${pulseSummary.lateCount} employees clocked in late.`
+                      : pulseSummary.absentCount > 0
+                        ? `${pulseSummary.absentCount} employee is absent right now.`
+                        : `${pulseSummary.lateCount} employee${pulseSummary.lateCount === 1 ? '' : 's'} clocked in late.`
                     : 'Everyone scheduled today is either on time, clocked in, or accounted for.'}
                 </p>
               </div>
@@ -982,12 +1195,18 @@ function TeamPulseDetailModal({
 export function TimeAttendance() {
   const [activeTab, setActiveTab] = useState<TabKey>('Live View');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [showPotentialIssues, setShowPotentialIssues] = useState(false);
+  const [insightFilter, setInsightFilter] = useState<InsightFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [issueStage, setIssueStage] = useState(0);
+  const [showNewIssueCue, setShowNewIssueCue] = useState(false);
   const [showPulseDetails, setShowPulseDetails] = useState(false);
+  const [showAllInsights, setShowAllInsights] = useState(false);
+  const [selectedInsightId, setSelectedInsightId] = useState<string | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [issueCycleToken, setIssueCycleToken] = useState(0);
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const initialMinuteRef = useRef(Math.floor(Date.now() / 60000));
+  const lastIssueStageRef = useRef(0);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -998,14 +1217,42 @@ export function TimeAttendance() {
   }, []);
 
   useEffect(() => {
+    if (issueStage >= 3) return;
+
     const timer = window.setTimeout(() => {
-      setShowPotentialIssues(true);
-    }, 15000);
+      setIssueStage((value) => Math.min(value + 1, 3));
+    }, 12000);
 
     return () => window.clearTimeout(timer);
-  }, [issueCycleToken]);
+  }, [issueCycleToken, issueStage]);
 
-  const activeCards = showPotentialIssues ? issueCards : calmCards;
+  useEffect(() => {
+    if (issueStage > lastIssueStageRef.current) {
+      setShowNewIssueCue(true);
+      const timer = window.setTimeout(() => {
+        setShowNewIssueCue(false);
+      }, 3200);
+      lastIssueStageRef.current = issueStage;
+      return () => window.clearTimeout(timer);
+    }
+
+    lastIssueStageRef.current = issueStage;
+    return undefined;
+  }, [issueStage]);
+
+  const activeCards = useMemo(() => {
+    if (issueStage === 0) return calmCards;
+
+    const issueCardMap = new Map(issueCards.map((card) => [card.id, card]));
+    const issueSequence = ['1', '2', '3'].slice(0, issueStage);
+
+    return calmCards.map((card) => {
+      if (!issueSequence.includes(card.id)) return card;
+      return issueCardMap.get(card.id) ?? card;
+    });
+  }, [issueStage]);
+
+  const showPotentialIssues = issueStage > 0;
 
   const pulseSummary = useMemo(() => {
     const clockedInCount = activeCards.filter((card) => card.status === 'Clocked In' || card.status === 'Clocked In (late)' || card.status === 'On Break').length;
@@ -1033,10 +1280,44 @@ export function TimeAttendance() {
     { label: 'Absent', value: `${pulseSummary.absentCount}`, icon: 'ban' as const },
     { label: 'Off Today', value: `${pulseSummary.offTodayCount}`, icon: 'calendar' as const },
   ] as const;
+  const pulseIssueSummary = useMemo(() => {
+    if (pulseSummary.issueCount === 0) {
+      return 'Everyone is on time. 3 employees have an upcoming shift at 10AM.';
+    }
+
+    if (pulseSummary.absentCount > 0 && pulseSummary.lateCount > 0) {
+      return `${pulseSummary.absentCount} employee hasn’t clocked in yet and ${pulseSummary.lateCount} employees clocked in late.`;
+    }
+
+    if (pulseSummary.absentCount > 0) {
+      return `${pulseSummary.absentCount} employee hasn’t clocked in yet.`;
+    }
+
+    return `${pulseSummary.lateCount} employee${pulseSummary.lateCount === 1 ? '' : 's'} clocked in late.`;
+  }, [pulseSummary]);
+  const latestIssueCard = issueStage > 0 ? issueCards[issueStage - 1] : null;
+  const latestIssueLabel = latestIssueCard
+    ? latestIssueCard.status === 'Absent'
+      ? `${latestIssueCard.name} just surfaced as absent`
+      : `${latestIssueCard.name} just surfaced as late`
+    : null;
 
   const currentMinute = Math.floor(currentTime.getTime() / 60000);
   const elapsedWorkingMinutes = Math.max(0, currentMinute - initialMinuteRef.current);
-  const scheduleRows = useMemo(() => activeCards.map((card, index) => buildScheduleRow(card, index)), [activeCards]);
+  const filteredCards = useMemo(() => {
+    if (statusFilter === 'all') return activeCards;
+    if (statusFilter === 'clocked-in') return activeCards.filter((card) => card.status === 'Clocked In');
+    if (statusFilter === 'on-break') return activeCards.filter((card) => card.status === 'On Break');
+    if (statusFilter === 'late') return activeCards.filter((card) => card.status === 'Clocked In (late)');
+    if (statusFilter === 'absent') return activeCards.filter((card) => card.status === 'Absent');
+    return activeCards.filter((card) => card.status === 'Off Today' || card.status === 'PTO');
+  }, [activeCards, statusFilter]);
+  const scheduleRows = useMemo(() => filteredCards.map((card, index) => buildScheduleRow(card, index)), [filteredCards]);
+  const filteredInsights = useMemo(
+    () => (insightFilter === 'all' ? insights : insights.filter((item) => item.type === insightFilter)),
+    [insightFilter]
+  );
+  const selectedInsight = selectedInsightId ? insights.find((item) => item.id === selectedInsightId) ?? null : null;
   const selectedEmployee = selectedEmployeeId ? activeCards.find((card) => card.id === selectedEmployeeId) ?? null : null;
   const liveTimeLabel = useMemo(
     () =>
@@ -1049,13 +1330,24 @@ export function TimeAttendance() {
   );
 
   const handleResetPulse = () => {
-    setShowPotentialIssues(false);
+    setIssueStage(0);
+    setShowNewIssueCue(false);
     setIssueCycleToken((value) => value + 1);
   };
 
   const handleOpenPulseEmployee = (employeeId: string) => {
     setShowPulseDetails(false);
     setSelectedEmployeeId(employeeId);
+  };
+
+  const handleOpenInsightEmployee = (employeeId: string) => {
+    setSelectedInsightId(null);
+    setSelectedEmployeeId(employeeId);
+  };
+
+  const handleOpenInsightFromList = (insightId: string) => {
+    setShowAllInsights(false);
+    setSelectedInsightId(insightId);
   };
 
   return (
@@ -1103,12 +1395,25 @@ export function TimeAttendance() {
             <div className="grid gap-4 lg:grid-cols-[420px_1fr]">
               <div className="space-y-4">
                 <section
-                  className="rounded-[12px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4"
-                  style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.03)' }}
+                  className={`rounded-[12px] border bg-[var(--surface-neutral-white)] p-4 transition-all duration-300 ${
+                    showNewIssueCue
+                      ? 'border-[#F2B38B]'
+                      : 'border-[var(--border-neutral-x-weak)]'
+                  }`}
+                  style={{
+                    boxShadow: showNewIssueCue
+                      ? '0 0 0 3px rgba(243,141,62,0.12), 1px 1px 0px 1px rgba(56,49,47,0.03)'
+                      : '1px 1px 0px 1px rgba(56,49,47,0.03)',
+                  }}
                 >
                   <div className="flex items-center gap-2">
                     <PulseIcon />
                     <span className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">Team Pulse</span>
+                    {showNewIssueCue && latestIssueLabel ? (
+                      <span className="inline-flex rounded-full bg-[#FFF2E7] px-3 py-1 text-[12px] leading-[18px] font-semibold text-[#CC5C00]">
+                        New issue
+                      </span>
+                    ) : null}
                     <button
                       type="button"
                       onClick={handleResetPulse}
@@ -1120,13 +1425,12 @@ export function TimeAttendance() {
 
                   <div className="mt-[17px]">
                     <p className={`text-[18px] leading-[26px] font-semibold ${showPotentialIssues ? 'text-[#D35400]' : 'text-[var(--color-primary-strong)]'}`}>
-                      {showPotentialIssues ? `${pulseSummary.issueCount} Potential Issues` : '0 Issues'}
+                      {showPotentialIssues ? `${pulseSummary.issueCount} Potential Issues` : 'Everything is looking good!'}
                     </p>
-                    <p className="mt-1 text-[15px] leading-[22px] text-[var(--text-neutral-x-strong)]">
-                      {showPotentialIssues
-                        ? `${pulseSummary.absentCount} employee hasn’t clocked in yet and ${pulseSummary.lateCount} employees clocked in late.`
-                        : 'Everyone is on time. 3 employees have an upcoming shift at 10AM.'}
-                    </p>
+                    <p className="mt-1 text-[15px] leading-[22px] text-[var(--text-neutral-x-strong)]">{pulseIssueSummary}</p>
+                    {showNewIssueCue && latestIssueLabel ? (
+                      <p className="mt-2 text-[13px] leading-[19px] font-medium text-[#CC5C00]">{latestIssueLabel}</p>
+                    ) : null}
                   </div>
 
                   <div className="mt-[17px] h-px bg-[var(--border-neutral-x-weak)]" />
@@ -1162,33 +1466,41 @@ export function TimeAttendance() {
                   <div className="flex items-center gap-2">
                     <Icon name="sparkles" size={20} className="text-[var(--color-primary-strong)]" />
                     <h3 className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">Insights</h3>
+                    <div className="ml-auto">
+                      <label className="sr-only" htmlFor="insight-filter">
+                        Filter insights
+                      </label>
+                      <select
+                        id="insight-filter"
+                        value={insightFilter}
+                        onChange={(event) => setInsightFilter(event.target.value as InsightFilter)}
+                        className="rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-3 py-1.5 text-[13px] leading-[19px] text-[var(--text-neutral-strong)] outline-none"
+                      >
+                        <option value="all">All</option>
+                        <option value="attendance">Attendance</option>
+                        <option value="overtime">Overtime</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="mt-3 space-y-3">
-                    {insights.map((item) => (
-                      <InsightTile key={item.id} title={item.title} description={item.description} />
+                    {filteredInsights.map((item) => (
+                      <InsightTile
+                        key={item.id}
+                        icon={item.icon}
+                        title={item.title}
+                        onClick={() => setSelectedInsightId(item.id)}
+                      />
                     ))}
                   </div>
 
-                  <button className="mt-3 text-[15px] leading-[22px] font-medium text-[#0047FF] hover:underline">
+                  <button
+                    type="button"
+                    onClick={() => setShowAllInsights(true)}
+                    className="mt-3 text-[15px] leading-[22px] font-medium text-[#0047FF] hover:underline"
+                  >
                     See All Insights
                   </button>
-                </section>
-
-                <section
-                  className="rounded-[12px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4"
-                  style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.03)' }}
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon name="clock" size={18} className="text-[var(--color-primary-strong)]" />
-                    <h3 className="text-[18px] leading-[26px] font-semibold text-[var(--color-primary-strong)]">Overtime</h3>
-                  </div>
-
-                  <div className="mt-3 space-y-3">
-                    {overtimeInsights.map((item) => (
-                      <OvertimeInsightTile key={item.id} title={item.title} description={item.description} />
-                    ))}
-                  </div>
                 </section>
               </div>
 
@@ -1198,14 +1510,46 @@ export function TimeAttendance() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex min-w-0 flex-1 flex-wrap items-center gap-4">
-                    <button
-                      type="button"
-                      className="flex h-10 min-w-[160px] items-center justify-between rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-4 text-[15px] leading-[22px] text-[var(--text-neutral-strong)]"
-                      style={{ boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.04)' }}
-                    >
-                      All Statuses
-                      <Icon name="caret-down" size={14} className="text-[var(--text-neutral-weak)]" />
-                    </button>
+                    <div className="relative">
+                      <label className="sr-only" htmlFor="status-filter">
+                        Filter employees by status
+                      </label>
+                      <select
+                        id="status-filter"
+                        value={statusFilter}
+                        onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+                        className="h-10 min-w-[160px] appearance-none rounded-full border border-[var(--border-neutral-medium)] bg-[var(--surface-neutral-white)] px-4 pr-10 text-[15px] leading-[22px] text-[var(--text-neutral-strong)] outline-none"
+                        style={{
+                          boxShadow: '1px 1px 0px 1px rgba(56,49,47,0.04)',
+                          paddingRight: statusFilter === 'all' ? '2.5rem' : '4.75rem',
+                        }}
+                      >
+                        <option value="all">All Statuses</option>
+                        <option value="clocked-in">Clocked In</option>
+                        <option value="on-break">On Break</option>
+                        <option value="late">Late</option>
+                        <option value="absent">Absent</option>
+                        <option value="off-today">Off Today / PTO</option>
+                      </select>
+                      {statusFilter !== 'all' ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setStatusFilter('all')}
+                            className="absolute right-9 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center text-[var(--text-neutral-medium)]"
+                            aria-label="Clear status filter"
+                          >
+                            <Icon name="xmark" size={12} />
+                          </button>
+                          <span className="pointer-events-none absolute right-7 top-1/2 h-4 w-px -translate-y-1/2 bg-[var(--border-neutral-medium)]" />
+                        </>
+                      ) : null}
+                      <Icon
+                        name="caret-down"
+                        size={14}
+                        className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-neutral-weak)]"
+                      />
+                    </div>
                     <div className="relative min-w-[250px] flex-1 max-w-[360px]">
                       <Icon name="magnifying-glass" size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-neutral-medium)]" />
                       <input
@@ -1255,7 +1599,7 @@ export function TimeAttendance() {
 
                 {viewMode === 'grid' ? (
                   <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    {activeCards.map((card) => (
+                    {filteredCards.map((card) => (
                       <button
                         key={card.id}
                         type="button"
@@ -1289,7 +1633,7 @@ export function TimeAttendance() {
                         </tr>
                       </thead>
                       <tbody>
-                        {activeCards.map((card) => (
+                        {filteredCards.map((card) => (
                           <EmployeeStatusRow
                             key={card.id}
                             card={card}
@@ -1329,6 +1673,20 @@ export function TimeAttendance() {
           activeCards={activeCards}
           onClose={() => setShowPulseDetails(false)}
           onOpenEmployee={handleOpenPulseEmployee}
+        />
+      ) : null}
+      {showAllInsights ? (
+        <AllInsightsModal
+          insights={insights}
+          onClose={() => setShowAllInsights(false)}
+          onOpenInsight={handleOpenInsightFromList}
+        />
+      ) : null}
+      {selectedInsight ? (
+        <InsightDetailModal
+          insight={selectedInsight}
+          onClose={() => setSelectedInsightId(null)}
+          onOpenEmployee={handleOpenInsightEmployee}
         />
       ) : null}
       {selectedEmployee ? (
